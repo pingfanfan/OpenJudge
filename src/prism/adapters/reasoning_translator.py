@@ -32,6 +32,7 @@ def translate(profile: ModelProfile) -> dict[str, Any]:
             extra["reasoning_effort"] = profile.reasoning_effort
 
     elif provider == "google":
+        # Budget 0 is how Gemini signals "disable thinking" (no separate boolean switch).
         effort = profile.reasoning_effort or "high"
         extra["thinkingConfig"] = {"thinkingBudget": _GOOGLE_BUDGET[effort]}
 

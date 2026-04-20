@@ -8,8 +8,10 @@ def test_anthropic_thinking_max():
         thinking=Thinking(enabled=True, effort="max"),
     )
     extra = translate(profile)
-    assert extra["thinking"] == {"type": "enabled"}
-    assert extra["output_config"] == {"effort": "max"}
+    assert extra == {
+        "thinking": {"type": "enabled"},
+        "output_config": {"effort": "max"},
+    }
 
 
 def test_anthropic_thinking_disabled():
@@ -18,8 +20,7 @@ def test_anthropic_thinking_disabled():
         thinking=Thinking(enabled=False, effort="high"),
     )
     extra = translate(profile)
-    assert extra["thinking"] == {"type": "disabled"}
-    assert "output_config" not in extra
+    assert extra == {"thinking": {"type": "disabled"}}
 
 
 def test_openai_reasoning_effort():
@@ -28,7 +29,7 @@ def test_openai_reasoning_effort():
         reasoning_effort="high",
     )
     extra = translate(profile)
-    assert extra["reasoning_effort"] == "high"
+    assert extra == {"reasoning_effort": "high"}
 
 
 def test_openai_no_effort_empty():
@@ -45,8 +46,7 @@ def test_google_thinking_budget():
         reasoning_effort="max",
     )
     extra = translate(profile)
-    assert "thinkingConfig" in extra
-    assert extra["thinkingConfig"]["thinkingBudget"] >= 32768
+    assert extra == {"thinkingConfig": {"thinkingBudget": 32768}}
 
 
 def test_deepseek_reasoning_flag():
@@ -55,13 +55,55 @@ def test_deepseek_reasoning_flag():
         reasoning_effort="high",
     )
     extra = translate(profile)
-    assert extra.get("reasoning") is True
+    assert extra == {"reasoning": True}
 
 
 def test_unsupported_provider_returns_empty():
     profile = ModelProfile(
         id="x", provider="custom", model="my-local",
         reasoning_effort="high",
+    )
+    extra = translate(profile)
+    assert extra == {}
+
+
+def test_anthropic_reasoning_effort_fallback():
+    """When no Thinking object is passed but reasoning_effort is set, enable thinking."""
+    profile = ModelProfile(
+        id="x", provider="anthropic", model="claude-opus-4-7",
+        reasoning_effort="medium",
+    )
+    extra = translate(profile)
+    assert extra == {
+        "thinking": {"type": "enabled"},
+        "output_config": {"effort": "medium"},
+    }
+
+
+def test_google_default_effort():
+    """When no reasoning_effort is set, Google defaults to 'high' (budget 16384)."""
+    profile = ModelProfile(
+        id="x", provider="google", model="gemini-2.5-pro",
+    )
+    extra = translate(profile)
+    assert extra == {"thinkingConfig": {"thinkingBudget": 16384}}
+
+
+def test_google_effort_off():
+    """reasoning_effort='off' on Google emits thinkingBudget=0 (Gemini's 'disable thinking' signal)."""
+    profile = ModelProfile(
+        id="x", provider="google", model="gemini-2.5-pro",
+        reasoning_effort="off",
+    )
+    extra = translate(profile)
+    assert extra == {"thinkingConfig": {"thinkingBudget": 0}}
+
+
+def test_deepseek_effort_off():
+    """reasoning_effort='off' on DeepSeek suppresses the reasoning flag."""
+    profile = ModelProfile(
+        id="x", provider="deepseek", model="deepseek-r1",
+        reasoning_effort="off",
     )
     extra = translate(profile)
     assert extra == {}
