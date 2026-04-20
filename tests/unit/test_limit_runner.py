@@ -114,3 +114,70 @@ async def test_limit_runner_multiseed_averages_per_prompt(tmp_path: Path):
     # 2 prompts × 2 seeds = 4 scores; per-prompt means [0.5, 0.5]; pass_at_1 = 0.5
     assert result["prompt_count"] == 2
     assert result["pass_at_1"] == pytest.approx(0.5)
+
+
+@pytest.mark.asyncio
+async def test_limit_runner_raises_when_benchmark_needs_judge_but_none_provided(tmp_path: Path):
+    """If a benchmark.needs_llm_judge=True and no judge_adapter is passed, run raises."""
+    fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
+
+    class _FakeLLMBenchmark(MMLUProBenchmark):
+        needs_llm_judge = True
+
+    bm = _FakeLLMBenchmark(source=str(fixture), source_format="jsonl")
+    profile = ModelProfile(
+        id="m1", provider="openai", model="x",
+        rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
+    )
+    svc = RunService(
+        db_path=tmp_path / "p.db",
+        artifacts_root=tmp_path / "a",
+        checkpoint_path=tmp_path / "cp.db",
+    )
+    await svc.init()
+    runner = LimitRunner(service=svc)
+    with pytest.raises(RuntimeError, match="requires.*judge"):
+        await runner.run(
+            benchmark=bm, profile=profile, adapter=CorrectAdapter(profile),
+            subset="full",
+        )
+
+
+@pytest.mark.asyncio
+async def test_limit_runner_passes_judge_adapter_to_make_judge(tmp_path: Path):
+    """When judge_adapter is provided, it flows to benchmark.make_judge."""
+    fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
+    received: list = []
+
+    class _CapturingBenchmark(MMLUProBenchmark):
+        needs_llm_judge = True
+
+        def make_judge(self, prompt, *, llm_judge_adapter=None):
+            received.append(llm_judge_adapter)
+            return super().make_judge(prompt, llm_judge_adapter=llm_judge_adapter)
+
+    bm = _CapturingBenchmark(source=str(fixture), source_format="jsonl")
+    profile = ModelProfile(
+        id="m1", provider="openai", model="x",
+        rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
+    )
+    judge_profile = ModelProfile(
+        id="judge", provider="openai", model="judge",
+        rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
+    )
+    judge_adapter = CorrectAdapter(judge_profile)
+
+    svc = RunService(
+        db_path=tmp_path / "p.db",
+        artifacts_root=tmp_path / "a",
+        checkpoint_path=tmp_path / "cp.db",
+    )
+    await svc.init()
+    runner = LimitRunner(service=svc)
+    await runner.run(
+        benchmark=bm, profile=profile, adapter=CorrectAdapter(profile),
+        judge_adapter=judge_adapter, subset="full",
+    )
+    # Two prompts → make_judge called twice → both received the judge_adapter.
+    assert len(received) == 2
+    assert all(a is judge_adapter for a in received)

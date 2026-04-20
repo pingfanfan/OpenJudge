@@ -27,14 +27,20 @@ class LimitRunner:
         benchmark: Benchmark,
         profile: ModelProfile,
         adapter: Adapter,
+        judge_adapter: Adapter | None = None,
         seeds: list[int] | None = None,
         subset: str | None = "quick",
         run_id: str | None = None,
         max_concurrency: int = 8,
     ) -> dict[str, Any]:
+        if benchmark.needs_llm_judge and judge_adapter is None:
+            raise RuntimeError(
+                f"Benchmark {benchmark.name!r} requires an LLM judge model — "
+                f"pass --judge-model <profile.yaml> (or judge_adapter=... in code)."
+            )
+
         seeds = seeds if seeds is not None else [0]
 
-        # Ensure a run exists.
         if run_id is None:
             run_id = await self.service.create_run(suite=f"{benchmark.name}-{subset or 'default'}")
 
@@ -52,12 +58,12 @@ class LimitRunner:
                 prompt_id=spec.prompt_id,
                 task_id=benchmark.name,
                 version=spec.version,
-                text=spec.messages[-1]["content"],
+                text=spec.messages[-1]["content"] if isinstance(spec.messages[-1].get("content"), str) else "<multimodal>",
                 system=None,
             )
             prompts_to_send[spec.prompt_id] = spec.messages
             expected_map[spec.prompt_id] = spec.expected
-            judges[spec.prompt_id] = benchmark.make_judge(spec)
+            judges[spec.prompt_id] = benchmark.make_judge(spec, llm_judge_adapter=judge_adapter)
 
         await self.service.execute(
             run_id=run_id,
