@@ -60,6 +60,11 @@ def doctor() -> None:
     artifacts = Path.cwd() / "artifacts"
     table.add_row("artifacts dir", str(artifacts), "OK")
 
+    # Benchmarks registered
+    from prism.benchmarks import default_registry
+    bench_names = default_registry().names()
+    table.add_row("benchmarks", ", ".join(bench_names), "OK" if bench_names else "WARN")
+
     console.print(table)
     raise typer.Exit(code=0 if ok_py else 1)
 

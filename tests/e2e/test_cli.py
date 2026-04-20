@@ -13,9 +13,12 @@ def test_app_help():
 
 def test_doctor_reports_python():
     result = runner.invoke(app, ["doctor"])
-    assert result.exit_code in (0, 1)  # may be 1 if missing API keys
+    assert result.exit_code in (0, 1)
     assert "python" in result.stdout.lower()
     assert "litellm" in result.stdout.lower()
+    # P2a additions:
+    assert "benchmarks" in result.stdout.lower()
+    assert "mmlu_pro" in result.stdout.lower()
 
 
 def test_version_flag():
