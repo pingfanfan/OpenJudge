@@ -90,7 +90,7 @@ def run_cmd(
         raise typer.Exit(code=2)
 
     try:
-        bm_cls = default_registry()._by_name[benchmark]
+        bm_cls = default_registry().get_class(benchmark)
     except KeyError:
         console.print(f"[red]Unknown benchmark: {benchmark!r}. Known: {default_registry().names()}[/red]")
         raise typer.Exit(code=2)

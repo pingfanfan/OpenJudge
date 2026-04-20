@@ -40,3 +40,16 @@ def test_list_names():
     reg = BenchmarkRegistry()
     reg.register(_FakeBenchmark)
     assert list(reg.names()) == ["fake"]
+
+
+def test_get_class_returns_class_not_instance():
+    reg = BenchmarkRegistry()
+    reg.register(_FakeBenchmark)
+    cls = reg.get_class("fake")
+    assert cls is _FakeBenchmark
+
+
+def test_get_class_missing_raises():
+    reg = BenchmarkRegistry()
+    with pytest.raises(KeyError):
+        reg.get_class("unknown")

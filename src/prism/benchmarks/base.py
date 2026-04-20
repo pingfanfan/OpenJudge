@@ -46,5 +46,10 @@ class BenchmarkRegistry:
             raise KeyError(f"unknown benchmark: {name!r}")
         return self._by_name[name]()
 
+    def get_class(self, name: str) -> type[Benchmark]:
+        if name not in self._by_name:
+            raise KeyError(f"unknown benchmark: {name!r}")
+        return self._by_name[name]
+
     def names(self) -> list[str]:
         return sorted(self._by_name.keys())
