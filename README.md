@@ -39,21 +39,27 @@ make all
 - `prism.service` — top-level orchestration service
 - `prism.cli` — Typer CLI entry point
 
-**P2a Limit Runner (complete):**
+**P2a–P2b Limit Runner (complete):**
 
-- `prism.benchmarks` — Benchmark ABC + PromptSpec + Registry
-- `prism.benchmarks.mmlu_pro` / `aime` / `humaneval` — 3 initial benchmarks
-- `prism.runners.limit` — LimitRunner: benchmark → adapter → judge → score
+- `prism.benchmarks` — Benchmark ABC + PromptSpec + Registry with LLM-judge adapter wiring
+- 10 benchmarks: `mmlu_pro`, `gpqa` (knowledge); `aime`, `math500` (math); `humaneval`, `livecodebench` (code); `ifeval` (instruction following); `ceval` (Chinese); `simpleqa`, `truthfulqa` (hallucination/truthfulness)
+- `prism.judges.ifeval` — IFEvalJudge with 12 constraint checkers
+- `prism.runners.limit` — LimitRunner: benchmark → adapter → judge → score (optionally with separate judge model)
 
 **Example:**
 
 ```bash
-uv run prism run --track limit \
-    --benchmark mmlu_pro \
+# Rule-based benchmark
+uv run prism run --track limit --benchmark mmlu_pro \
     --model configs/models/gpt-5-high.example.yaml
+
+# LLM-judge benchmark (requires --judge-model)
+uv run prism run --track limit --benchmark simpleqa \
+    --model configs/models/gpt-5-high.example.yaml \
+    --judge-model configs/models/claude-opus-4-7-max.example.yaml
 ```
 
-P2b (more benchmarks), P2c (special views + leaderboard), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
+P2c (safety + SuperCLUE), P2d (multimodal), P2e (long context), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
 
 ## License
 
