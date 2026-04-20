@@ -11,8 +11,8 @@ class AdapterRequest(BaseModel):
 
     messages: list[dict[str, Any]]
     max_output_tokens: int = Field(gt=0, default=4096)
-    temperature: float = 0.0
-    top_p: float = 1.0
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    top_p: float = Field(default=1.0, gt=0.0, le=1.0)
     stop: list[str] | None = None
     tools: list[dict[str, Any]] | None = None
     seed: int | None = None
@@ -22,7 +22,7 @@ class AdapterResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     text: str
-    reasoning_text: str | None
+    reasoning_text: str | None = None
     tokens_in: int
     tokens_out: int
     latency_ms: float
