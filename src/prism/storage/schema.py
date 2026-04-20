@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     DateTime,
@@ -20,7 +20,7 @@ class Run(Base):
     __tablename__ = "runs"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     suite: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, default="pending")
     config_hash: Mapped[str] = mapped_column(String)
@@ -77,7 +77,7 @@ class Response(Base):
     latency_ms: Mapped[float] = mapped_column(Float, default=0.0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
     finish_reason: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class Score(Base):
@@ -89,4 +89,4 @@ class Score(Base):
     score: Mapped[float] = mapped_column(Float)
     confidence: Mapped[float] = mapped_column(Float, default=1.0)
     reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))

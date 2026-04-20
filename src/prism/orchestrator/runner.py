@@ -80,4 +80,11 @@ class OrchestratorRunner:
         async for c in self.checkpoint.pending_cells(run_id, cells_list):
             pending.append(c)
 
-        await asyncio.gather(*(_execute(c) for c in pending))
+        # return_exceptions=True so a single failing cell doesn't cancel other in-flight cells.
+        # Failed cells are already marked "failed" in the checkpoint by _execute's try/except.
+        results = await asyncio.gather(*(_execute(c) for c in pending), return_exceptions=True)
+        # Re-raise the first exception so callers know something failed,
+        # but only after all cells have finished.
+        for r in results:
+            if isinstance(r, BaseException):
+                raise r

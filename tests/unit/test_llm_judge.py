@@ -26,7 +26,7 @@ class FakeAdapter:
 async def test_llm_judge_parses_json():
     payload = '{"score": 0.9, "confidence": 0.85, "reasoning": "mostly right"}'
     j = LLMJudge(adapter=FakeAdapter(payload), rubric="Score 0-1.")
-    r = await j.judge_async(output="2+2=4", expected="4")
+    r = await j.judge(output="2+2=4", expected="4")
     assert isinstance(r, JudgeResult)
     assert r.score == 0.9
     assert r.confidence == 0.85
@@ -39,13 +39,13 @@ async def test_llm_judge_parses_json_with_extra_text():
         '{"score": 0.0, "confidence": 1.0, "reasoning": "wrong"}\n```\n'
     )
     j = LLMJudge(adapter=FakeAdapter(payload), rubric="Score 0-1.")
-    r = await j.judge_async(output="2+2=5", expected="4")
+    r = await j.judge(output="2+2=5", expected="4")
     assert r.score == 0.0
 
 
 @pytest.mark.asyncio
 async def test_llm_judge_malformed_returns_low_confidence():
     j = LLMJudge(adapter=FakeAdapter("I cannot parse this."), rubric="Score 0-1.")
-    r = await j.judge_async(output="x", expected="y")
+    r = await j.judge(output="x", expected="y")
     assert r.confidence < 0.5
     assert r.score == 0.0

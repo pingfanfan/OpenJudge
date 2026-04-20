@@ -12,7 +12,7 @@ class ExactMatchJudge(Judge):
         self.case_sensitive = case_sensitive
         self.strip = strip
 
-    def judge(self, *, output: str, expected: str) -> JudgeResult:
+    async def judge(self, *, output: str, expected: str) -> JudgeResult:
         a = output.strip() if self.strip else output
         b = expected.strip() if self.strip else expected
         if not self.case_sensitive:
@@ -26,7 +26,7 @@ class NumericJudge(Judge):
     def __init__(self, *, tolerance: float = 0.0) -> None:
         self.tolerance = tolerance
 
-    def judge(self, *, output: str, expected: str) -> JudgeResult:
+    async def judge(self, *, output: str, expected: str) -> JudgeResult:
         try:
             exp = float(expected.strip())
         except ValueError:
@@ -53,7 +53,7 @@ class RegexJudge(Judge):
     def __init__(self, *, pattern: str, flags: int = 0) -> None:
         self._re = re.compile(pattern, flags)
 
-    def judge(self, *, output: str, expected: str) -> JudgeResult:
+    async def judge(self, *, output: str, expected: str) -> JudgeResult:
         m = self._re.search(output)
         if not m:
             return JudgeResult(score=0.0, confidence=1.0, reasoning="no match")

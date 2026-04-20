@@ -28,7 +28,7 @@ class LLMJudge(Judge):
         self.adapter = adapter
         self.rubric = rubric
 
-    async def judge_async(self, *, output: str, expected: str) -> JudgeResult:
+    async def judge(self, *, output: str, expected: str) -> JudgeResult:
         prompt = _DEFAULT_PROMPT.format(rubric=self.rubric, output=output, expected=expected)
         resp = await self.adapter.complete(
             AdapterRequest(
@@ -37,9 +37,6 @@ class LLMJudge(Judge):
             )
         )
         return self._parse(resp.text)
-
-    def judge(self, *, output: str, expected: str) -> JudgeResult:  # sync not supported
-        raise NotImplementedError("Use judge_async")
 
     @staticmethod
     def _parse(text: str) -> JudgeResult:
