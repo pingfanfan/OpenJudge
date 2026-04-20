@@ -181,3 +181,53 @@ async def test_limit_runner_passes_judge_adapter_to_make_judge(tmp_path: Path):
     # Two prompts → make_judge called twice → both received the judge_adapter.
     assert len(received) == 2
     assert all(a is judge_adapter for a in received)
+
+
+@pytest.mark.asyncio
+async def test_limit_runner_extracts_text_from_multimodal_content(tmp_path: Path):
+    """When prompt.messages has list-content, Prompt.text should be the first text part."""
+    from prism.storage.schema import Prompt
+    from sqlalchemy import select
+
+    fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
+
+    class _MultimodalBenchmark(MMLUProBenchmark):
+        """Overrides _row_to_prompt to emit a multimodal-style list content."""
+        @staticmethod
+        def _row_to_prompt(row):
+            spec = MMLUProBenchmark._row_to_prompt(row)
+            text_content = spec.messages[0]["content"]
+            return type(spec)(
+                prompt_id=spec.prompt_id,
+                task_id=spec.task_id,
+                version=spec.version,
+                messages=[{"role": "user", "content": [
+                    {"type": "text", "text": text_content},
+                    {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBOR..."}},
+                ]}],
+                expected=spec.expected,
+                metadata=spec.metadata,
+            )
+
+    bm = _MultimodalBenchmark(source=str(fixture), source_format="jsonl")
+    profile = ModelProfile(
+        id="m1", provider="openai", model="x",
+        rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
+    )
+    svc = RunService(
+        db_path=tmp_path / "p.db",
+        artifacts_root=tmp_path / "a",
+        checkpoint_path=tmp_path / "cp.db",
+    )
+    await svc.init()
+    runner = LimitRunner(service=svc)
+    await runner.run(
+        benchmark=bm, profile=profile, adapter=CorrectAdapter(profile),
+        subset="full",
+    )
+
+    async with svc.db.session() as s:
+        prompts_rows = list((await s.execute(select(Prompt))).scalars())
+    texts = [p.text for p in prompts_rows]
+    assert any("What is 2+2?" in t for t in texts)
+    assert all(t != "<multimodal>" for t in texts)

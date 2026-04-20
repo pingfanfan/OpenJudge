@@ -12,6 +12,27 @@ from prism.service import RunService
 from prism.storage.schema import Response, Score
 
 
+def _extract_prompt_text(messages: list[dict[str, Any]]) -> str:
+    """Best-effort extraction of a human-readable prompt text from the last message.
+
+    Handles both string content and OpenAI-style list-content (multimodal).
+    Returns the first text part if the content is a list; otherwise the
+    string content. Returns "<multimodal>" only if no text is found.
+    """
+    if not messages:
+        return ""
+    last_content = messages[-1].get("content")
+    if isinstance(last_content, str):
+        return last_content
+    if isinstance(last_content, list):
+        for part in last_content:
+            if isinstance(part, dict) and part.get("type") == "text":
+                text = part.get("text")
+                if isinstance(text, str):
+                    return text
+    return "<multimodal>"
+
+
 class LimitRunner:
     """Runs a single Benchmark against a single (profile, adapter) pair via RunService.
 
@@ -58,11 +79,7 @@ class LimitRunner:
                 prompt_id=spec.prompt_id,
                 task_id=benchmark.name,
                 version=spec.version,
-                text=(
-                    spec.messages[-1]["content"]
-                    if isinstance(spec.messages[-1].get("content"), str)
-                    else "<multimodal>"
-                ),
+                text=_extract_prompt_text(spec.messages),
                 system=None,
             )
             prompts_to_send[spec.prompt_id] = spec.messages
