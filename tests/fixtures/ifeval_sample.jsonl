@@ -1,0 +1,2 @@
+{"key": "ifeval-1", "prompt": "Write a short essay about climate change in at least 100 words with no commas.", "instruction_id_list": ["length_constraints:number_words", "punctuation:no_comma"], "kwargs": [{"relation": "at least", "num_words": 100}, {}]}
+{"key": "ifeval-2", "prompt": "Write a response that is entirely lowercase and contains the keyword 'ecology'.", "instruction_id_list": ["change_case:english_lowercase", "keywords:existence"], "kwargs": [{}, {"keywords": ["ecology"]}]}
