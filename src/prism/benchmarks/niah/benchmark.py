@@ -19,15 +19,13 @@ if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
 
-_PROMPT_TEMPLATE = """Below is a long document. Read it carefully, then answer the question at the end.
-
-<document>
-{haystack}
-</document>
-
-Question: What is the special passcode mentioned in the document?
-
-Respond with just the passcode on the last line, prefixed by "Answer:". For example: "Answer: ABC123"."""
+_PROMPT_TEMPLATE = (
+    "Below is a long document. Read it carefully, then answer the question"
+    " at the end.\n\n<document>\n{haystack}\n</document>\n\n"
+    "Question: What is the special passcode mentioned in the document?\n\n"
+    'Respond with just the passcode on the last line, prefixed by "Answer:".'
+    ' For example: "Answer: ABC123".'
+)
 
 _JUDGE_PATTERN = r"Answer:\s*([A-Z0-9_-]{6,})\b"
 
@@ -60,7 +58,10 @@ class NIAHBenchmark(Benchmark):
         depths: list[float] | None = None,
         seed: int = 42,
     ) -> None:
-        self.lengths = lengths if lengths is not None else [1024, 4096, 16384, 65536, 262144, 1048576]
+        self.lengths = (
+            lengths if lengths is not None
+            else [1024, 4096, 16384, 65536, 262144, 1048576]
+        )
         self.depths = depths if depths is not None else [0.0, 0.25, 0.5, 0.75, 1.0]
         self.seed = seed
 
@@ -80,7 +81,7 @@ class NIAHBenchmark(Benchmark):
         self,
         prompt: PromptSpec,
         *,
-        llm_judge_adapter: "Adapter | None" = None,
+        llm_judge_adapter: Adapter | None = None,
     ) -> Judge:
         return RegexJudge(pattern=_JUDGE_PATTERN)
 

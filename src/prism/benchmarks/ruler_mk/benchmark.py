@@ -18,15 +18,14 @@ if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
 
-_PROMPT_TEMPLATE = """Below is a long document containing multiple key-value records. Read it, then answer the question.
-
-<document>
-{haystack}
-</document>
-
-Question: What is the value associated with the key "{queried_key}"?
-
-Respond with just the value on the last line, prefixed by "Answer:". For example: "Answer: XYZ123"."""
+_PROMPT_TEMPLATE = (
+    "Below is a long document containing multiple key-value records."
+    " Read it, then answer the question.\n\n"
+    "<document>\n{haystack}\n</document>\n\n"
+    'Question: What is the value associated with the key "{queried_key}"?\n\n'
+    'Respond with just the value on the last line, prefixed by "Answer:".'
+    ' For example: "Answer: XYZ123".'
+)
 
 _JUDGE_PATTERN = r"Answer:\s*([A-Z0-9_-]{4,})\b"
 
@@ -54,7 +53,10 @@ class RulerMKBenchmark(Benchmark):
         depths: list[float] | None = None,
         seed: int = 42,
     ) -> None:
-        self.lengths = lengths if lengths is not None else [1024, 4096, 16384, 65536, 262144, 1048576]
+        self.lengths = (
+            lengths if lengths is not None
+            else [1024, 4096, 16384, 65536, 262144, 1048576]
+        )
         self.depths = depths if depths is not None else [0.25, 0.5, 0.75]
         self.seed = seed
 
@@ -73,7 +75,7 @@ class RulerMKBenchmark(Benchmark):
         self,
         prompt: PromptSpec,
         *,
-        llm_judge_adapter: "Adapter | None" = None,
+        llm_judge_adapter: Adapter | None = None,
     ) -> Judge:
         return RegexJudge(pattern=_JUDGE_PATTERN)
 
