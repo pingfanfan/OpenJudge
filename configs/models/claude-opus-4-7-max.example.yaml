@@ -1,0 +1,13 @@
+id: claude-opus-4-7@max
+display_name: "Claude Opus 4.7 (thinking=max)"
+provider: anthropic
+model: claude-opus-4-7
+thinking:
+  enabled: true
+  effort: max
+rate_limit:
+  rpm: 50
+  tpm: 400000
+cost:
+  input_per_mtok: 15.0
+  output_per_mtok: 75.0

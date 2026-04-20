@@ -1,0 +1,15 @@
+# P2a quick suite (example). The CLI does not yet read suite files directly — this is a
+# human-readable record of what a "quick" run looks like. CLI execution still takes --benchmark
+# and --model individually. Suite-file driving lands in P2c.
+name: limit-quick
+track: limit
+benchmarks:
+  - name: mmlu_pro
+    subset: quick
+  - name: aime
+    subset: full
+  - name: humaneval
+    subset: quick
+sampling:
+  n_seeds: 1
+  seeds: [0]

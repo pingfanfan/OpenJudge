@@ -1,0 +1,11 @@
+id: gpt-5@high
+display_name: "GPT-5 (reasoning_effort=high)"
+provider: openai
+model: gpt-5
+reasoning_effort: high
+rate_limit:
+  rpm: 100
+  tpm: 500000
+cost:
+  input_per_mtok: 10.0
+  output_per_mtok: 40.0
