@@ -42,7 +42,7 @@ make all
 **P2a–P2b Limit Runner (complete):**
 
 - `prism.benchmarks` — Benchmark ABC + PromptSpec + Registry with LLM-judge adapter wiring
-- 10 benchmarks: `mmlu_pro`, `gpqa` (knowledge); `aime`, `math500` (math); `humaneval`, `livecodebench` (code); `ifeval` (instruction following); `ceval` (Chinese); `simpleqa`, `truthfulqa` (hallucination/truthfulness)
+- 15 benchmarks across 9 dimensions: `mmlu_pro`, `gpqa` (knowledge); `aime`, `math500` (math); `humaneval`, `livecodebench` (code); `ifeval` (instruction following); `ceval`, `superclue` (Chinese); `simpleqa`, `truthfulqa` (hallucination); `harmbench`, `xstest` (safety); `mmmu`, `mathvista` (multimodal)
 - `prism.judges.ifeval` — IFEvalJudge with 12 constraint checkers
 - `prism.runners.limit` — LimitRunner: benchmark → adapter → judge → score (optionally with separate judge model)
 
@@ -59,7 +59,7 @@ uv run prism run --track limit --benchmark simpleqa \
     --judge-model configs/models/claude-opus-4-7-max.example.yaml
 ```
 
-P2c (safety + SuperCLUE), P2d (multimodal), P2e (long context), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
+P2e (long context NIAH/RULER), P2f (leaderboard + special views), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
 
 ## Safety benchmarks
 
