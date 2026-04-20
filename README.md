@@ -59,7 +59,26 @@ uv run prism run --track limit --benchmark simpleqa \
     --judge-model configs/models/claude-opus-4-7-max.example.yaml
 ```
 
-P2g (contamination probe), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
+P3b (Claude Code CLI), P3c (academic benchmarks), P3d (Prism Real Tasks), P4 (Meta-Ability), P5 (Web UI) are planned.
+
+## Agent track (P3a walking skeleton)
+
+Prism's second track runs multi-turn tool-calling agents. P3a ships with a toy
+benchmark (`toy_agent`) that verifies the pipeline end-to-end without needing
+real Claude Code integration:
+
+````bash
+uv run prism run --track agent --benchmark toy_agent \
+    --model configs/models/gpt-5-high.example.yaml
+````
+
+The runner spins up a tempdir per task, lets the model call `read_file` /
+`write_file` / `bash` tools, runs the task's `judge_command` (e.g., `pytest`),
+and records a full trace in `artifacts/<run_id>/agent/<task_id>.json`.
+
+P3b will replace the inline agent loop with a real Claude Code subprocess;
+P3c adds SWE-Bench / Terminal-Bench / Tau-Bench / Aider / CORE-Bench;
+P3d adds 30 Prism Real Tasks with LLM-judged code quality.
 
 ## Safety benchmarks
 

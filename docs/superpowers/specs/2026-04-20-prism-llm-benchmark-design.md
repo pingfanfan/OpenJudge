@@ -4,7 +4,7 @@
 - **日期**：2026-04-20
 - **作者**：pingfan.work@gmail.com
 - **许可证**：Apache-2.0
-- **状态**：P1 + P2a–P2f 完成（17 benchmark + leaderboard + Context Staircase + Reasoning Effort Sweep）；P2g 污染探针待启动
+- **状态**：P1 + P2(a-f) + P3a 完成（Limit 赛道完整 + Agent pipeline walking skeleton）；P3b Claude Code 集成待启动
 
 ---
 
