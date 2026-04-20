@@ -45,25 +45,30 @@ class OrchestratorRunner:
 
         async def _execute(cell: Cell) -> None:
             async with sem:
-                profile = self.profiles[cell.model_id]
                 adapter = self.adapters[cell.model_id]
                 limiter = self._limiters[cell.model_id]
                 messages = prompts[cell.prompt_id]
 
                 # Approx token count: 4 chars per token; guard against multimodal list content
-                approx_tokens = max(1, sum(
-                    len(m.get("content", "")) if isinstance(m.get("content"), str) else 100
-                    for m in messages
-                ) // 4)
+                approx_tokens = max(
+                    1,
+                    sum(
+                        len(m.get("content", "")) if isinstance(m.get("content"), str) else 100
+                        for m in messages
+                    )
+                    // 4,
+                )
                 await limiter.acquire(tokens=approx_tokens)
 
                 await self.checkpoint.mark(run_id=run_id, cell=cell, status="running")
                 try:
-                    resp = await adapter.complete(AdapterRequest(
-                        messages=messages,
-                        max_output_tokens=4096,
-                        seed=cell.seed,
-                    ))
+                    resp = await adapter.complete(
+                        AdapterRequest(
+                            messages=messages,
+                            max_output_tokens=4096,
+                            seed=cell.seed,
+                        )
+                    )
                     await self.checkpoint.mark(run_id=run_id, cell=cell, status="done")
                     if on_done is not None:
                         await on_done(cell, resp)

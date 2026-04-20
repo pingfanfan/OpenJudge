@@ -1,8 +1,10 @@
-import pytest
 from pathlib import Path
+
+import pytest
 from pydantic import ValidationError
-from prism.config.model_profile import ModelProfile, Thinking, RateLimit, Cost
+
 from prism.config.loader import load_model_profile
+from prism.config.model_profile import Cost, ModelProfile, Thinking
 
 
 def test_minimal_profile_parses():
@@ -31,7 +33,9 @@ def test_anthropic_thinking_profile():
 def test_invalid_effort_rejected():
     with pytest.raises(ValidationError, match="reasoning_effort"):
         ModelProfile(
-            id="x", provider="openai", model="x",
+            id="x",
+            provider="openai",
+            model="x",
             reasoning_effort="super-mega",
         )
 

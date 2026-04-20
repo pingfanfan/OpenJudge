@@ -1,5 +1,7 @@
 import pytest
-from prism.adapters.base import AdapterRequest, AdapterResponse, Adapter
+from pydantic import ValidationError
+
+from prism.adapters.base import Adapter, AdapterRequest, AdapterResponse
 
 
 def test_request_minimal():
@@ -29,9 +31,6 @@ def test_response_cost_computed():
 def test_abstract_adapter_cannot_instantiate():
     with pytest.raises(TypeError):
         Adapter()
-
-
-from pydantic import ValidationError
 
 
 def test_request_rejects_extra_fields():

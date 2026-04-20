@@ -1,5 +1,3 @@
-import pytest
-from prism.judges.base import JudgeResult
 from prism.judges.rules import ExactMatchJudge, NumericJudge, RegexJudge
 
 

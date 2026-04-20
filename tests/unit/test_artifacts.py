@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 from prism.storage.artifacts import ArtifactStore

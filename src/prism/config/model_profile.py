@@ -31,9 +31,7 @@ class ModelProfile(BaseModel):
 
     id: str
     display_name: str | None = None
-    provider: Literal[
-        "anthropic", "openai", "google", "deepseek", "xai", "kimi", "qwen", "custom"
-    ]
+    provider: Literal["anthropic", "openai", "google", "deepseek", "xai", "kimi", "qwen", "custom"]
     model: str
     thinking: Thinking | None = None
     reasoning_effort: Effort | None = None

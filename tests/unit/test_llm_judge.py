@@ -1,4 +1,3 @@
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -35,7 +34,10 @@ async def test_llm_judge_parses_json():
 
 @pytest.mark.asyncio
 async def test_llm_judge_parses_json_with_extra_text():
-    payload = 'Here is my analysis.\n```json\n{"score": 0.0, "confidence": 1.0, "reasoning": "wrong"}\n```\n'
+    payload = (
+        'Here is my analysis.\n```json\n'
+        '{"score": 0.0, "confidence": 1.0, "reasoning": "wrong"}\n```\n'
+    )
     j = LLMJudge(adapter=FakeAdapter(payload), rubric="Score 0-1.")
     r = await j.judge_async(output="2+2=5", expected="4")
     assert r.score == 0.0

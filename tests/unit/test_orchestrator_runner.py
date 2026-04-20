@@ -1,6 +1,5 @@
 import asyncio
 from pathlib import Path
-from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -28,7 +27,9 @@ class FakeAdapter(Adapter):
 @pytest.mark.asyncio
 async def test_run_all_cells(tmp_path: Path):
     profile = ModelProfile(
-        id="m1", provider="openai", model="x",
+        id="m1",
+        provider="openai",
+        model="x",
         rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
     )
     runner = OrchestratorRunner(
@@ -60,7 +61,9 @@ async def test_run_all_cells(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_resume_skips_done(tmp_path: Path):
     profile = ModelProfile(
-        id="m1", provider="openai", model="x",
+        id="m1",
+        provider="openai",
+        model="x",
         rate_limit=RateLimit(rpm=6000, tpm=10_000_000),
     )
     adapter = FakeAdapter(profile)

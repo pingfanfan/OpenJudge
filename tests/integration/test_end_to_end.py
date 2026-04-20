@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +42,7 @@ async def test_full_run_lifecycle(tmp_path: Path):
 
     prompts: dict[str, dict[str, Any]] = {
         "p1": {"version": "v1", "text": "What is 2+2?", "system": None, "task_id": "t1"},
-        "p2": {"version": "v1", "text": "Say hello.",   "system": None, "task_id": "t1"},
+        "p2": {"version": "v1", "text": "Say hello.", "system": None, "task_id": "t1"},
     }
 
     run_id = await svc.create_run(suite="smoke")

@@ -12,7 +12,7 @@ class LiteLLMAdapter(Adapter):
         extra = translate(self.profile)
         model_id = f"{self.profile.provider}/{self.profile.model}"
 
-        kwargs: dict = {
+        kwargs: dict[str, object] = {
             "model": model_id,
             "messages": request.messages,
             "max_tokens": request.max_output_tokens,

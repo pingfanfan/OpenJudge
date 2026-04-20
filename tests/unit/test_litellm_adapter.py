@@ -165,7 +165,7 @@ async def test_reasoning_text_none_when_attr_missing(openai_profile):
     class _RespNoReasoning:
         choices = [_ChoiceNoReasoning()]
 
-        class usage:
+        class usage:  # noqa: N801
             prompt_tokens = 1
             completion_tokens = 1
 
@@ -200,9 +200,10 @@ async def test_raw_defaults_empty_when_no_model_dump(openai_profile):
     class _RespNoDump:
         choices = [_ChoiceNoDump()]
 
-        class usage:
+        class usage:  # noqa: N801
             prompt_tokens = 0
             completion_tokens = 0
+
         # No model_dump method
 
     with patch(

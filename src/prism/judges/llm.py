@@ -30,10 +30,12 @@ class LLMJudge(Judge):
 
     async def judge_async(self, *, output: str, expected: str) -> JudgeResult:
         prompt = _DEFAULT_PROMPT.format(rubric=self.rubric, output=output, expected=expected)
-        resp = await self.adapter.complete(AdapterRequest(
-            messages=[{"role": "user", "content": prompt}],
-            max_output_tokens=512,
-        ))
+        resp = await self.adapter.complete(
+            AdapterRequest(
+                messages=[{"role": "user", "content": prompt}],
+                max_output_tokens=512,
+            )
+        )
         return self._parse(resp.text)
 
     def judge(self, *, output: str, expected: str) -> JudgeResult:  # sync not supported

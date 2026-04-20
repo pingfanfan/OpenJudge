@@ -13,8 +13,13 @@ def cassette_dir() -> Path:
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Strip API keys during unit tests to prevent accidental real calls."""
     for key in (
-        "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY",
-        "DEEPSEEK_API_KEY", "XAI_API_KEY", "KIMI_API_KEY", "QWEN_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GOOGLE_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "XAI_API_KEY",
+        "KIMI_API_KEY",
+        "QWEN_API_KEY",
     ):
         # Keep them if integration/e2e marker is set, otherwise strip.
         if os.environ.get("PRISM_ALLOW_REAL_CALLS") != "1":

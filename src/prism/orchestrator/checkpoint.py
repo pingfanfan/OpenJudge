@@ -36,21 +36,27 @@ class CheckpointStore:
             await db.commit()
 
     async def status(self, *, run_id: str, cell: Cell) -> str:
+        _sql = (
+            "SELECT status FROM checkpoint"
+            " WHERE run_id=? AND model_id=? AND prompt_id=? AND seed=?"
+        )
         async with aiosqlite.connect(self.path) as db:
             cursor = await db.execute(
-                "SELECT status FROM checkpoint WHERE run_id=? AND model_id=? AND prompt_id=? AND seed=?",
+                _sql,
                 (run_id, cell.model_id, cell.prompt_id, cell.seed),
             )
             row = await cursor.fetchone()
-            return row[0] if row else "pending"
+            return str(row[0]) if row else "pending"
 
-    async def pending_cells(
-        self, run_id: str, cells: Iterable[Cell]
-    ) -> AsyncIterator[Cell]:
+    async def pending_cells(self, run_id: str, cells: Iterable[Cell]) -> AsyncIterator[Cell]:
+        _sql = (
+            "SELECT status FROM checkpoint"
+            " WHERE run_id=? AND model_id=? AND prompt_id=? AND seed=?"
+        )
         async with aiosqlite.connect(self.path) as db:
             for cell in cells:
                 cursor = await db.execute(
-                    "SELECT status FROM checkpoint WHERE run_id=? AND model_id=? AND prompt_id=? AND seed=?",
+                    _sql,
                     (run_id, cell.model_id, cell.prompt_id, cell.seed),
                 )
                 row = await cursor.fetchone()
