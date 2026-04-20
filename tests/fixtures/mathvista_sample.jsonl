@@ -1,0 +1,3 @@
+{"pid": "mv-1", "question": "How many red pixels are in the image?", "answer": "1", "question_type": "free_form", "answer_type": "integer", "image_path": "tests/fixtures/images/pixel_red.png"}
+{"pid": "mv-2", "question": "Approximately what fraction of the image is blue?", "answer": "1.0", "question_type": "free_form", "answer_type": "float", "image_path": "tests/fixtures/images/pixel_blue.png"}
+{"pid": "mv-skip-1", "question": "Which option is shown?", "answer": "A", "question_type": "multi_choice", "answer_type": "text", "image_path": "tests/fixtures/images/pixel_red.png"}
