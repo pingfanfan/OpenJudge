@@ -1,0 +1,2 @@
+{"problem_id": "math-1", "problem": "If $f(x) = 2x + 3$, find $f(5)$.", "answer": "13", "level": "Level 1", "subject": "Algebra"}
+{"problem_id": "math-2", "problem": "Compute $\\lim_{x \\to 0} \\frac{\\sin x}{x}$.", "answer": "1", "level": "Level 2", "subject": "Calculus"}
