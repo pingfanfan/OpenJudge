@@ -69,21 +69,40 @@ def doctor() -> None:
     raise typer.Exit(code=0 if ok_py else 1)
 
 
+_DEFAULT_WORK_DIR = ".prism_runs"
+
+
 @app.command(name="run")
 def run_cmd(
-    track: str = typer.Option(..., "--track", help="Track: limit|agent|taste (P2a supports limit)"),
-    benchmark: str = typer.Option(..., "--benchmark", help="Benchmark name (see registry)"),
-    model: Path = typer.Option(..., "--model", exists=True, help="Path to model profile YAML"),
-    work_dir: Path = typer.Option(
-        Path.cwd() / ".prism_runs",
+    track: str = typer.Option(
+        ..., "--track", help="Track: limit|agent|taste (P2a supports limit)"
+    ),
+    benchmark: str = typer.Option(
+        ..., "--benchmark", help="Benchmark name (see registry)"
+    ),
+    model: Path = typer.Option(  # noqa: B008
+        ..., "--model", exists=True, help="Path to model profile YAML"
+    ),
+    judge_model: Path | None = typer.Option(
+        None,
+        "--judge-model",
+        exists=True,
+        help="Path to LLM judge model profile YAML (required for benchmarks that use LLMJudge).",
+    ),
+    work_dir: Path = typer.Option(  # noqa: B008
+        _DEFAULT_WORK_DIR,
         "--work-dir",
         help="Directory for SQLite DB + artifacts + checkpoint",
     ),
-    subset: str | None = typer.Option("quick", "--subset", help="Benchmark subset (quick|standard|full)"),
+    subset: str | None = typer.Option(
+        "quick", "--subset", help="Benchmark subset (quick|standard|full)"
+    ),
     seeds: str = typer.Option("0", "--seeds", help="Comma-separated integer seeds"),
     max_concurrency: int = typer.Option(8, "--max-concurrency"),
     benchmark_source: str | None = typer.Option(
-        None, "--benchmark-source", help="Override benchmark source (e.g., local jsonl path for testing)"
+        None,
+        "--benchmark-source",
+        help="Override benchmark source (e.g., local jsonl path for testing)",
     ),
     benchmark_format: str | None = typer.Option(
         None, "--benchmark-format", help="jsonl|hf"
@@ -91,17 +110,20 @@ def run_cmd(
 ) -> None:
     """Run a benchmark against a model, producing scored results."""
     if track != "limit":
-        console.print(f"[red]Only --track limit is implemented in P2a[/red]")
+        console.print("[red]Only --track limit is implemented in P2a[/red]")
         raise typer.Exit(code=2)
 
     try:
         bm_cls = default_registry().get_class(benchmark)
     except KeyError:
-        console.print(f"[red]Unknown benchmark: {benchmark!r}. Known: {default_registry().names()}[/red]")
-        raise typer.Exit(code=2)
+        known = default_registry().names()
+        console.print(
+            f"[red]Unknown benchmark: {benchmark!r}. Known: {known}[/red]"
+        )
+        raise typer.Exit(code=2) from None
 
     # Instantiate benchmark (allow override for source/format in tests)
-    kwargs: dict = {}
+    kwargs: dict[str, str] = {}
     if benchmark_source is not None:
         kwargs["source"] = benchmark_source
     if benchmark_format is not None:
@@ -110,6 +132,11 @@ def run_cmd(
 
     profile = load_model_profile(model)
     adapter = LiteLLMAdapter(profile)
+
+    judge_adapter: LiteLLMAdapter | None = None
+    if judge_model is not None:
+        judge_profile = load_model_profile(judge_model)
+        judge_adapter = LiteLLMAdapter(judge_profile)
 
     work_dir.mkdir(parents=True, exist_ok=True)
     svc = RunService(
@@ -120,13 +147,14 @@ def run_cmd(
 
     seeds_list = [int(s.strip()) for s in seeds.split(",") if s.strip()]
 
-    async def _run() -> dict:
+    async def _run() -> dict[str, object]:
         await svc.init()
         limit = LimitRunner(service=svc)
         return await limit.run(
             benchmark=bm,
             profile=profile,
             adapter=adapter,
+            judge_adapter=judge_adapter,
             seeds=seeds_list,
             subset=subset,
             max_concurrency=max_concurrency,

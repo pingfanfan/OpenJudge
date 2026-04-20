@@ -55,3 +55,35 @@ def test_run_command_invokes_limit_runner(tmp_path: Path):
     assert result.exit_code == 0
     assert "prompt_count" in result.stdout
     assert "0.5" in result.stdout
+
+
+def test_run_command_accepts_judge_model(tmp_path: Path):
+    model_cfg = tmp_path / "m.yaml"
+    model_cfg.write_text("id: test\nprovider: openai\nmodel: gpt-4o\n")
+    judge_cfg = tmp_path / "j.yaml"
+    judge_cfg.write_text("id: judge\nprovider: openai\nmodel: gpt-5\n")
+
+    from unittest.mock import AsyncMock, patch
+    fake_result = {"run_id": "run-x", "prompt_count": 1, "pass_at_1": 1.0, "total_cost_usd": 0.0}
+
+    with patch("prism.cli.LimitRunner") as MockRunner, \
+         patch("prism.cli.LiteLLMAdapter") as MockAdapter:
+        instance = MockRunner.return_value
+        instance.run = AsyncMock(return_value=fake_result)
+
+        result = runner.invoke(app, [
+            "run", "--track", "limit", "--benchmark", "mmlu_pro",
+            "--model", str(model_cfg),
+            "--judge-model", str(judge_cfg),
+            "--work-dir", str(tmp_path),
+            "--benchmark-source", str(Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"),
+            "--benchmark-format", "jsonl",
+        ])
+
+    assert result.exit_code == 0
+    # LiteLLMAdapter was constructed twice: once for subject model, once for judge model.
+    assert MockAdapter.call_count == 2
+    # LimitRunner.run was called with judge_adapter kwarg.
+    call_kwargs = instance.run.call_args.kwargs
+    assert "judge_adapter" in call_kwargs
+    assert call_kwargs["judge_adapter"] is not None
