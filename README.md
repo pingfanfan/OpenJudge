@@ -28,18 +28,32 @@ make typecheck
 make all
 ```
 
-## Architecture (P1)
+## Architecture
 
-P1 establishes the foundation:
+**P1 Foundation (complete, tag `p1-foundation`):**
 
 - `prism.adapters` — LiteLLM-based model adapter with thinking/reasoning_effort translation
 - `prism.storage` — SQLite schema + async session + JSON artifact store
 - `prism.orchestrator` — execution matrix, rate limiter, checkpoint, async runner
-- `prism.judges` — Tier 1 rule judges (exact/numeric/regex) + Tier 2 LLM judge
+- `prism.judges` — Tier 1 rule judges + Tier 2 LLM judge + pytest judge
 - `prism.service` — top-level orchestration service
 - `prism.cli` — Typer CLI entry point
 
-P2 (Limit Runner), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned separately.
+**P2a Limit Runner (complete):**
+
+- `prism.benchmarks` — Benchmark ABC + PromptSpec + Registry
+- `prism.benchmarks.mmlu_pro` / `aime` / `humaneval` — 3 initial benchmarks
+- `prism.runners.limit` — LimitRunner: benchmark → adapter → judge → score
+
+**Example:**
+
+```bash
+uv run prism run --track limit \
+    --benchmark mmlu_pro \
+    --model configs/models/gpt-5-high.example.yaml
+```
+
+P2b (more benchmarks), P2c (special views + leaderboard), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
 
 ## License
 
