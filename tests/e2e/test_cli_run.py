@@ -88,3 +88,42 @@ def test_run_command_accepts_judge_model(tmp_path: Path):
     call_kwargs = instance.run.call_args.kwargs
     assert "judge_adapter" in call_kwargs
     assert call_kwargs["judge_adapter"] is not None
+
+
+def test_run_agent_track_help():
+    result = runner.invoke(app, ["run", "--help"])
+    assert result.exit_code == 0
+
+
+def test_run_agent_track_invokes_agent_runner(tmp_path: Path):
+    model_cfg = tmp_path / "m.yaml"
+    model_cfg.write_text("id: test\nprovider: openai\nmodel: x\n")
+
+    from unittest.mock import AsyncMock, patch
+    fake_result = {"run_id": "run-x", "task_count": 2, "success_rate": 1.0, "total_cost_usd": 0.0}
+
+    with patch("prism.cli.AgentRunner") as MockRunner, \
+         patch("prism.cli.LiteLLMAdapter") as _MockAdapter:
+        instance = MockRunner.return_value
+        instance.run = AsyncMock(return_value=fake_result)
+
+        result = runner.invoke(app, [
+            "run", "--track", "agent", "--benchmark", "toy_agent",
+            "--model", str(model_cfg),
+            "--work-dir", str(tmp_path),
+        ])
+
+    assert result.exit_code == 0, result.stdout
+    assert "success_rate" in result.stdout
+    assert "1.0" in result.stdout
+
+
+def test_run_agent_unknown_benchmark(tmp_path: Path):
+    model_cfg = tmp_path / "m.yaml"
+    model_cfg.write_text("id: test\nprovider: openai\nmodel: x\n")
+    result = runner.invoke(app, [
+        "run", "--track", "agent", "--benchmark", "nonexistent",
+        "--model", str(model_cfg),
+        "--work-dir", str(tmp_path),
+    ])
+    assert result.exit_code != 0

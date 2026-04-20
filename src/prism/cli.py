@@ -12,6 +12,7 @@ from rich.table import Table
 
 from prism import __version__
 from prism.adapters.litellm_adapter import LiteLLMAdapter
+from prism.agent import agent_registry
 from prism.benchmarks import default_registry
 from prism.config.loader import load_model_profile
 from prism.leaderboard import (
@@ -20,6 +21,7 @@ from prism.leaderboard import (
     list_thinking_variants,
     render_leaderboard,
 )
+from prism.runners.agent import AgentRunner
 from prism.runners.limit import LimitRunner
 from prism.service import RunService
 from prism.storage.database import Database
@@ -117,9 +119,43 @@ def run_cmd(
     ),
 ) -> None:
     """Run a benchmark against a model, producing scored results."""
-    if track != "limit":
-        console.print("[red]Only --track limit is implemented in P2a[/red]")
+    if track not in ("limit", "agent"):
+        console.print(f"[red]Unknown track: {track!r}. Supported: limit | agent[/red]")
         raise typer.Exit(code=2)
+
+    if track == "agent":
+        try:
+            bm_cls = agent_registry().get_class(benchmark)
+        except KeyError:
+            console.print(
+                f"[red]Unknown agent benchmark: {benchmark!r}. "
+                f"Known: {agent_registry().names()}[/red]"
+            )
+            raise typer.Exit(code=2) from None
+        bm = bm_cls()
+        profile = load_model_profile(model)
+        adapter = LiteLLMAdapter(profile)
+
+        work_dir.mkdir(parents=True, exist_ok=True)
+        svc = RunService(
+            db_path=work_dir / "prism.db",
+            artifacts_root=work_dir / "artifacts",
+            checkpoint_path=work_dir / "checkpoint.db",
+        )
+
+        async def _run_agent() -> dict:
+            await svc.init()
+            agent_runner = AgentRunner(service=svc)
+            return await agent_runner.run(
+                benchmark=bm,
+                profile=profile,
+                adapter=adapter,
+                subset=subset,
+            )
+
+        result = asyncio.run(_run_agent())
+        console.print(json.dumps(result, indent=2))
+        return
 
     try:
         bm_cls = default_registry().get_class(benchmark)
