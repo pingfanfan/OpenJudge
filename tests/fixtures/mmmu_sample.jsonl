@@ -1,0 +1,2 @@
+{"id": "mmmu-q1", "question": "What color is shown in the image?", "options": ["Red", "Green", "Blue", "Yellow"], "answer": "A", "image_path": "tests/fixtures/images/pixel_red.png"}
+{"id": "mmmu-q2", "question": "What color is shown in the image?", "options": ["Red", "Green", "Blue", "Yellow"], "answer": "C", "image_path": "tests/fixtures/images/pixel_blue.png"}
