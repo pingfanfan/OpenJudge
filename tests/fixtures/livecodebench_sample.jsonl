@@ -1,0 +1,1 @@
+{"problem_id": "lcb-1", "title": "Sum Two Numbers", "description": "Write a function sum_two(a: int, b: int) -> int that returns a + b.", "entry_point": "sum_two", "test_cases": [[[1, 2], 3], [[-5, 5], 0], [[100, 200], 300]]}
