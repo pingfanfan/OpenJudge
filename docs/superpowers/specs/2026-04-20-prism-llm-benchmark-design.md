@@ -4,7 +4,7 @@
 - **日期**：2026-04-20
 - **作者**：pingfan.work@gmail.com
 - **许可证**：Apache-2.0
-- **状态**：设计确认，等待进入实现规划（writing-plans）
+- **状态**：P1 Foundation + P2a Limit Runner walking skeleton 完成；P2b benchmark 扩展待启动
 
 ---
 
