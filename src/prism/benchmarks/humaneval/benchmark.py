@@ -8,9 +8,12 @@ from prism.benchmarks.dataset_cache import load_dataset_cached
 from prism.judges.base import Judge
 from prism.judges.code_exec import PytestJudge
 
-_PROMPT_TEMPLATE = """Complete the following Python function. Return ONLY the complete function implementation in a ```python code block. Do not include any explanation text.
-
-{prompt}"""
+_PROMPT_TEMPLATE = (
+    "Complete the following Python function. Return ONLY the complete function"
+    " implementation in a ```python code block. Do not include any explanation text.\n"
+    "\n"
+    "{prompt}"
+)
 
 # Wrap HumanEval's check(<entry_point>) trailing call in a pytest test for the PytestJudge harness.
 _TEST_WRAPPER_TEMPLATE = """
@@ -29,6 +32,7 @@ class HumanEvalBenchmark(Benchmark):
     name = "humaneval"
     track = "limit"
     version = "v1"
+    subset_caps = {"quick": 50, "standard": 164, "full": None}
 
     def __init__(
         self,
@@ -42,10 +46,15 @@ class HumanEvalBenchmark(Benchmark):
         self.split = split
 
     def load_prompts(self, *, subset: str | None = None) -> Iterable[PromptSpec]:
+        cap = self._cap_for(subset)
+        yielded = 0
         for row in load_dataset_cached(
             source=self.source, format=self.source_format, split=self.split
         ):
+            if cap is not None and yielded >= cap:
+                break
             yield self._row_to_prompt(row)
+            yielded += 1
 
     def make_judge(self, prompt: PromptSpec) -> Judge:
         return PytestJudge(

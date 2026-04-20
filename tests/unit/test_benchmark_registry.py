@@ -1,7 +1,7 @@
 import pytest
 
 from prism.benchmarks.base import Benchmark, BenchmarkRegistry, PromptSpec
-from prism.judges.base import Judge, JudgeResult
+from prism.judges.base import Judge
 from prism.judges.rules import ExactMatchJudge
 
 

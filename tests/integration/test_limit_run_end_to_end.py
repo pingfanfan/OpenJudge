@@ -28,7 +28,7 @@ class _CheatingAdapter(Adapter):
 async def test_limit_runner_end_to_end_persists_all_layers(tmp_path: Path):
     """End-to-end: benchmark load → adapter call → judge → Score row → summary."""
     fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
-    bm = MMLUProBenchmark(source=str(fixture), source_format="jsonl", subset_size=None)
+    bm = MMLUProBenchmark(source=str(fixture), source_format="jsonl")
 
     profile = ModelProfile(
         id="fake", provider="openai", model="x",
@@ -44,6 +44,7 @@ async def test_limit_runner_end_to_end_persists_all_layers(tmp_path: Path):
     limit = LimitRunner(service=svc)
     result = await limit.run(
         benchmark=bm, profile=profile, adapter=_CheatingAdapter(profile),
+        subset="full",
     )
 
     assert result["prompt_count"] == 2
@@ -51,6 +52,7 @@ async def test_limit_runner_end_to_end_persists_all_layers(tmp_path: Path):
 
     # Verify DB has both responses and both scores
     from sqlalchemy import select
+
     from prism.storage.schema import Response, Score
     async with svc.db.session() as s:
         resps = list((await s.execute(select(Response))).scalars())

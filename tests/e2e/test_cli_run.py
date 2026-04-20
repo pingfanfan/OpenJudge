@@ -39,15 +39,16 @@ def test_run_command_invokes_limit_runner(tmp_path: Path):
     )
     fake_result = {"run_id": "run-x", "prompt_count": 2, "pass_at_1": 0.5, "total_cost_usd": 0.0}
 
-    with patch("prism.cli.LimitRunner") as MockRunner:
-        instance = MockRunner.return_value
+    fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
+    with patch("prism.cli.LimitRunner") as mock_runner:
+        instance = mock_runner.return_value
         instance.run = AsyncMock(return_value=fake_result)
 
         result = runner.invoke(app, [
             "run", "--track", "limit", "--benchmark", "mmlu_pro",
             "--model", str(model_cfg),
             "--work-dir", str(tmp_path),
-            "--benchmark-source", str(Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"),
+            "--benchmark-source", str(fixture),
             "--benchmark-format", "jsonl",
         ])
 

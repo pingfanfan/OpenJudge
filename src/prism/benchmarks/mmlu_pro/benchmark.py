@@ -8,7 +8,8 @@ from prism.benchmarks.dataset_cache import load_dataset_cached
 from prism.judges.base import Judge
 from prism.judges.rules import RegexJudge
 
-_PROMPT_TEMPLATE = """Answer the following multiple-choice question. Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".
+_PROMPT_TEMPLATE = """Answer the following multiple-choice question.
+Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".
 
 Question: {question}
 
@@ -24,6 +25,7 @@ class MMLUProBenchmark(Benchmark):
     name = "mmlu_pro"
     track = "limit"
     version = "v1"
+    subset_caps = {"quick": 200, "standard": 1000, "full": None}
 
     def __init__(
         self,
@@ -31,20 +33,18 @@ class MMLUProBenchmark(Benchmark):
         source: str = "TIGER-Lab/MMLU-Pro",
         source_format: str = "hf",
         split: str = "test",
-        subset_size: int | None = 200,
     ) -> None:
         self.source = source
         self.source_format = source_format
         self.split = split
-        self.subset_size = subset_size
 
     def load_prompts(self, *, subset: str | None = None) -> Iterable[PromptSpec]:
-        size = self.subset_size if subset != "full" else None
+        cap = self._cap_for(subset)
         yielded = 0
         for row in load_dataset_cached(
             source=self.source, format=self.source_format, split=self.split
         ):
-            if size is not None and yielded >= size:
+            if cap is not None and yielded >= cap:
                 break
             yield self._row_to_prompt(row)
             yielded += 1

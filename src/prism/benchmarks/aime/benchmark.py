@@ -8,18 +8,23 @@ from prism.benchmarks.dataset_cache import load_dataset_cached
 from prism.judges.base import Judge
 from prism.judges.rules import NumericJudge
 
-_PROMPT_TEMPLATE = """You are solving an AIME (American Invitational Mathematics Examination) problem. The answer is always a non-negative integer between 0 and 999.
-
-Problem:
-{problem}
-
-Work through the problem step by step. Give your final answer on the last line as a single integer (no units, no words, just the number)."""
+_PROMPT_TEMPLATE = (
+    "You are solving an AIME (American Invitational Mathematics Examination) problem."
+    " The answer is always a non-negative integer between 0 and 999.\n"
+    "\n"
+    "Problem:\n"
+    "{problem}\n"
+    "\n"
+    "Work through the problem step by step. Give your final answer on the last line"
+    " as a single integer (no units, no words, just the number)."
+)
 
 
 class AIMEBenchmark(Benchmark):
     name = "aime"
     track = "limit"
     version = "v1"
+    subset_caps = {"quick": 30, "standard": 60, "full": None}
 
     def __init__(
         self,
@@ -33,10 +38,15 @@ class AIMEBenchmark(Benchmark):
         self.split = split
 
     def load_prompts(self, *, subset: str | None = None) -> Iterable[PromptSpec]:
+        cap = self._cap_for(subset)
+        yielded = 0
         for row in load_dataset_cached(
             source=self.source, format=self.source_format, split=self.split
         ):
+            if cap is not None and yielded >= cap:
+                break
             yield self._row_to_prompt(row)
+            yielded += 1
 
     def make_judge(self, prompt: PromptSpec) -> Judge:
         return NumericJudge()

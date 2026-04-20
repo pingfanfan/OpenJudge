@@ -1,10 +1,11 @@
-"""PytestJudge — scores a model-generated Python solution by running pytest against a fixed test file in a subprocess.
+"""PytestJudge — scores a model-generated Python solution by running pytest in a subprocess.
 
 Behavior:
-- Extracts code from ```python ... ``` fence if present (else treats whole output as code).
+- Extracts code from ```python ... ``` fence if present (else uses whole output as code).
 - Writes code to `solution.py` + the test_code to `test_solution.py` in a tempdir.
 - Runs `python -m pytest -q test_solution.py` with timeout.
-- Score = 1.0 if exit code 0, else 0.0. Reasoning captures the last ~500 chars of stderr/stdout for debugging.
+- Score = 1.0 if exit code 0, else 0.0.
+  Reasoning captures the last ~500 chars of stderr/stdout for debugging.
 """
 from __future__ import annotations
 
@@ -51,10 +52,16 @@ class PytestJudge(Judge):
                 )
             except subprocess.TimeoutExpired:
                 return JudgeResult(
-                    score=0.0, confidence=1.0, reasoning=f"pytest timed out after {self.timeout_sec}s"
+                    score=0.0,
+                    confidence=1.0,
+                    reasoning=f"pytest timed out after {self.timeout_sec}s",
                 )
 
-        output_text = (proc.stdout + "\n" + proc.stderr).strip()[-800:]
+            # Redact the absolute tmpdir path so persisted reasoning doesn't leak local FS info.
+            raw = (proc.stdout + "\n" + proc.stderr)
+            redacted = raw.replace(str(tmp_path), "<tmp>")
+            output_text = redacted.strip()[-800:]
+
         if proc.returncode == 0:
             return JudgeResult(score=1.0, confidence=1.0, reasoning="all tests passed")
         return JudgeResult(score=0.0, confidence=1.0, reasoning=output_text or "tests failed")
