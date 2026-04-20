@@ -13,8 +13,15 @@ from prism import __version__
 from prism.adapters.litellm_adapter import LiteLLMAdapter
 from prism.benchmarks import default_registry
 from prism.config.loader import load_model_profile
+from prism.leaderboard import (
+    aggregate_by_model_benchmark,
+    aggregate_staircase,
+    list_thinking_variants,
+    render_leaderboard,
+)
 from prism.runners.limit import LimitRunner
 from prism.service import RunService
+from prism.storage.database import Database
 
 app = typer.Typer(
     name="prism",
@@ -162,6 +169,35 @@ def run_cmd(
 
     result = asyncio.run(_run())
     console.print(json.dumps(result, indent=2))
+
+
+leaderboard_app = typer.Typer(help="Leaderboard generation")
+app.add_typer(leaderboard_app, name="leaderboard")
+
+
+@leaderboard_app.command("publish")
+def leaderboard_publish_cmd(
+    workdir: Path = typer.Argument(..., exists=True, help="Path containing prism.db"),
+    output: Path = typer.Option(..., "--output", help="Directory to write index.html + data.json"),
+) -> None:
+    """Render the leaderboard HTML from a Prism workdir's SQLite DB."""
+    db_path = workdir / "prism.db"
+    if not db_path.exists():
+        console.print(f"[red]No prism.db found in {workdir}[/red]")
+        raise typer.Exit(code=2)
+
+    async def _build() -> dict:
+        db = Database(db_path)
+        main = await aggregate_by_model_benchmark(db=db)
+        sweep_groups = await list_thinking_variants(db=db)
+        staircase = []
+        for bm in ("niah", "ruler_mk"):
+            staircase.extend(await aggregate_staircase(db=db, benchmark=bm))
+        return {"main": main, "staircase": staircase, "sweep_groups": sweep_groups}
+
+    data = asyncio.run(_build())
+    html_path = render_leaderboard(data, output_dir=output)
+    console.print(f"Wrote leaderboard → {html_path}")
 
 
 if __name__ == "__main__":
