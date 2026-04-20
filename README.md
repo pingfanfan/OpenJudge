@@ -61,6 +61,12 @@ uv run prism run --track limit --benchmark simpleqa \
 
 P2c (safety + SuperCLUE), P2d (multimodal), P2e (long context), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
 
+## Safety benchmarks
+
+HarmBench and XSTest test model safety and over-refusal behavior. See
+[`docs/safety-considerations.md`](docs/safety-considerations.md) for data
+handling and ethical usage notes before running them.
+
 ## License
 
 Apache-2.0
