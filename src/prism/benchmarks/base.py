@@ -28,3 +28,23 @@ class Benchmark(ABC):
 
     @abstractmethod
     def make_judge(self, prompt: PromptSpec) -> Judge: ...
+
+
+class BenchmarkRegistry:
+    def __init__(self) -> None:
+        self._by_name: dict[str, type[Benchmark]] = {}
+
+    def register(self, cls: type[Benchmark]) -> None:
+        if not cls.name:
+            raise ValueError("Benchmark class must set a non-empty `name`")
+        if cls.name in self._by_name:
+            raise ValueError(f"Benchmark {cls.name!r} already registered")
+        self._by_name[cls.name] = cls
+
+    def get(self, name: str) -> Benchmark:
+        if name not in self._by_name:
+            raise KeyError(f"unknown benchmark: {name!r}")
+        return self._by_name[name]()
+
+    def names(self) -> list[str]:
+        return sorted(self._by_name.keys())
