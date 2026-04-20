@@ -143,7 +143,7 @@ def run_cmd(
             checkpoint_path=work_dir / "checkpoint.db",
         )
 
-        async def _run_agent() -> dict:
+        async def _run_agent() -> dict[str, Any]:
             await svc.init()
             agent_runner = AgentRunner(service=svc)
             return await agent_runner.run(
@@ -158,7 +158,7 @@ def run_cmd(
         return
 
     try:
-        bm_cls = default_registry().get_class(benchmark)
+        limit_bm_cls = default_registry().get_class(benchmark)
     except KeyError:
         known = default_registry().names()
         console.print(
@@ -172,7 +172,7 @@ def run_cmd(
         kwargs["source"] = benchmark_source
     if benchmark_format is not None:
         kwargs["source_format"] = benchmark_format
-    bm = bm_cls(**kwargs)
+    limit_bm = limit_bm_cls(**kwargs)
 
     profile = load_model_profile(model)
     adapter = LiteLLMAdapter(profile)
@@ -195,7 +195,7 @@ def run_cmd(
         await svc.init()
         limit = LimitRunner(service=svc)
         return await limit.run(
-            benchmark=bm,
+            benchmark=limit_bm,
             profile=profile,
             adapter=adapter,
             judge_adapter=judge_adapter,

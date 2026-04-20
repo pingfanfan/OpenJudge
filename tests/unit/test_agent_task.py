@@ -20,7 +20,7 @@ def test_agent_task_frozen():
     t = AgentTask(
         task_id="t1", workspace_files={}, user_instruction="x", judge_command=[],
     )
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         t.task_id = "t2"  # type: ignore
 
 

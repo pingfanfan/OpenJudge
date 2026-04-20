@@ -10,7 +10,6 @@ from collections.abc import Iterable
 
 from prism.agent.task import AgentBenchmark, AgentTask
 
-
 _ADD_TASK = AgentTask(
     task_id="toy-add",
     workspace_files={

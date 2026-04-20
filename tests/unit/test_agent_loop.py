@@ -77,7 +77,10 @@ async def test_agent_loop_write_then_finish(tmp_path: Path):
 async def test_agent_loop_respects_max_turns(tmp_path: Path):
     from prism.config.model_profile import ModelProfile
     profile = ModelProfile(id="m1", provider="openai", model="x")
-    looping = [_resp_with_tool_call("bash", {"command": "true"}, call_id=f"c{i}") for i in range(100)]
+    looping = [
+        _resp_with_tool_call("bash", {"command": "true"}, call_id=f"c{i}")
+        for i in range(100)
+    ]
     adapter = _ScriptedAdapter(profile, looping)
 
     result = await run_agent_loop(

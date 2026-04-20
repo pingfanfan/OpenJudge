@@ -14,7 +14,10 @@ AGENT_TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "read_file",
-            "description": "Read the contents of a file in the workspace. Returns the file contents as a string, or an error message.",
+            "description": (
+                "Read the contents of a file in the workspace."
+                " Returns the file contents as a string, or an error message."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -31,7 +34,10 @@ AGENT_TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "write_file",
-            "description": "Write (create or overwrite) a file in the workspace. Parent directories are created as needed.",
+            "description": (
+                "Write (create or overwrite) a file in the workspace."
+                " Parent directories are created as needed."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -46,7 +52,10 @@ AGENT_TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "bash",
-            "description": "Run a shell command in the workspace directory. Returns combined stdout+stderr and the exit code.",
+            "description": (
+                "Run a shell command in the workspace directory."
+                " Returns combined stdout+stderr and the exit code."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {

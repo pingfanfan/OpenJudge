@@ -102,9 +102,9 @@ def test_run_agent_track_invokes_agent_runner(tmp_path: Path):
     from unittest.mock import AsyncMock, patch
     fake_result = {"run_id": "run-x", "task_count": 2, "success_rate": 1.0, "total_cost_usd": 0.0}
 
-    with patch("prism.cli.AgentRunner") as MockRunner, \
-         patch("prism.cli.LiteLLMAdapter") as _MockAdapter:
-        instance = MockRunner.return_value
+    with patch("prism.cli.AgentRunner") as mock_runner, \
+         patch("prism.cli.LiteLLMAdapter"):
+        instance = mock_runner.return_value
         instance.run = AsyncMock(return_value=fake_result)
 
         result = runner.invoke(app, [
