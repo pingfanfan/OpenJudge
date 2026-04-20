@@ -26,12 +26,22 @@ generate text that is stored in Prism's SQLite database and artifact directory.
 - **Prompts and responses are persisted** in the run's SQLite DB and JSON
   artifacts. Responses to HarmBench prompts may contain harmful content if the
   subject model failed to refuse — treat these artifacts as sensitive.
+- **HarmBench prompts themselves are harmful strings.** They describe
+  attacker-style behaviors (e.g. synthesis instructions, cybercrime requests)
+  and are stored unencrypted in `prompts.db` when you run the benchmark.
+  If your environment policy treats such strings as sensitive content, do not
+  run HarmBench outside an approved work directory.
 - **The judge adapter sees harmful content** in the process of grading. This is
   expected and necessary; the judge's own output is a structured JSON score, not
   a continuation of harmful behavior.
 - **We recommend running safety benchmarks in an isolated work directory**
   (`--work-dir /tmp/prism-safety-run`) so that artifacts can be easily deleted
   after analysis.
+- **XSTest runs only on the "safe" prompt subset.** The upstream dataset
+  contains both safe (benign questions resembling harmful ones) and unsafe
+  (actually harmful) variants. Prism's `XSTestBenchmark` filters to `type ==
+  "safe"` at load time, because over-refusal is only meaningful on benign
+  prompts. Unsafe rows are silently skipped.
 
 ## Ethical usage
 

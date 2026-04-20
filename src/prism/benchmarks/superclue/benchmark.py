@@ -62,13 +62,37 @@ class SuperCLUEBenchmark(Benchmark):
     @staticmethod
     def _row_to_prompt(row: dict[str, Any]) -> PromptSpec:
         qid = str(row.get("id") or row["question"][:32])
-        choices_block = "\n".join(f"{letter}. {row[letter]}" for letter in "ABCD")
+
+        # Accept two row shapes:
+        # 1. {"A": "opt1", "B": "opt2", ...}  — per-letter keys
+        # 2. {"choices": ["opt1", "opt2", ...]}  — list form
+        if "choices" in row:
+            choices = row["choices"]
+            if len(choices) != 4:
+                raise ValueError(
+                    f"SuperCLUE expects 4 choices, got {len(choices)} for row {qid!r}"
+                )
+            choices_block = "\n".join(
+                f"{chr(ord('A') + i)}. {opt}" for i, opt in enumerate(choices)
+            )
+        elif all(letter in row for letter in "ABCD"):
+            choices_block = "\n".join(f"{letter}. {row[letter]}" for letter in "ABCD")
+        else:
+            raise ValueError(
+                f"SuperCLUE row {qid!r} missing choices: expected either "
+                f"'A/B/C/D' keys or a 'choices' list"
+            )
+
+        answer = row.get("answer") or row.get("label")
+        if answer is None:
+            raise ValueError(f"SuperCLUE row {qid!r} missing 'answer' or 'label' field")
+
         content = _PROMPT_TEMPLATE.format(question=row["question"], choices_block=choices_block)
         return PromptSpec(
             prompt_id=f"superclue-{qid}",
             task_id="superclue",
             version="v1",
             messages=[{"role": "user", "content": content}],
-            expected=row["answer"],
+            expected=str(answer),
             metadata={},
         )
