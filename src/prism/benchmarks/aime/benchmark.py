@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from prism.benchmarks.base import Benchmark, PromptSpec
+
+if TYPE_CHECKING:
+    from prism.adapters.base import Adapter
 from prism.benchmarks.dataset_cache import load_dataset_cached
 from prism.judges.base import Judge
 from prism.judges.rules import NumericJudge
@@ -48,7 +51,12 @@ class AIMEBenchmark(Benchmark):
             yield self._row_to_prompt(row)
             yielded += 1
 
-    def make_judge(self, prompt: PromptSpec) -> Judge:
+    def make_judge(
+        self,
+        prompt: PromptSpec,
+        *,
+        llm_judge_adapter: Adapter | None = None,
+    ) -> Judge:
         return NumericJudge()
 
     @staticmethod

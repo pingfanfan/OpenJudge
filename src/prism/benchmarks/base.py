@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from prism.judges.base import Judge
+
+if TYPE_CHECKING:
+    from prism.adapters.base import Adapter
 
 
 @dataclass(frozen=True)
@@ -23,8 +28,11 @@ class Benchmark(ABC):
     track: str = "limit"
     version: str = "v1"
 
+    # True if this benchmark constructs an LLMJudge. Callers must provide
+    # llm_judge_adapter when calling make_judge on such benchmarks.
+    needs_llm_judge: bool = False
+
     # Per-subset item caps. Subclasses override to specialize.
-    # A value of None means "no cap" (full set).
     subset_caps: dict[str, int | None] = {
         "quick": 100,
         "standard": 500,
@@ -35,12 +43,15 @@ class Benchmark(ABC):
     def load_prompts(self, *, subset: str | None = None) -> Iterable[PromptSpec]: ...
 
     @abstractmethod
-    def make_judge(self, prompt: PromptSpec) -> Judge: ...
+    def make_judge(
+        self,
+        prompt: PromptSpec,
+        *,
+        llm_judge_adapter: Adapter | None = None,
+    ) -> Judge: ...
 
     def _cap_for(self, subset: str | None) -> int | None:
-        """Return item cap for a subset name, or None for no cap."""
         if subset is None:
-            # No explicit subset → use the subclass's "quick" default.
             return self.subset_caps.get("quick")
         return self.subset_caps.get(subset, self.subset_caps.get("quick"))
 
