@@ -4,7 +4,7 @@
 - **日期**：2026-04-20
 - **作者**：pingfan.work@gmail.com
 - **许可证**：Apache-2.0
-- **状态**：P1 + P2a + P2b + P2c 完成（13 benchmark 跨 8 维度；含安全与中文扩展）；P2d 多模态待启动
+- **状态**：P1 + P2a + P2b + P2c + P2d 完成（15 benchmark 跨 9 维度；含多模态）；P2e 长上下文待启动
 
 ---
 

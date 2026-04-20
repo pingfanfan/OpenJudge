@@ -18,10 +18,10 @@ def test_doctor_reports_python():
     assert "litellm" in result.stdout.lower()
     # P2a additions:
     assert "benchmarks" in result.stdout.lower()
-    # P2c: doctor lists all 13 benchmarks
+    # P2d: doctor lists all 15 benchmarks
     for name in ("mmlu_pro", "aime", "humaneval", "gpqa", "math500",
                  "livecodebench", "ifeval", "ceval", "simpleqa", "truthfulqa",
-                 "harmbench", "xstest", "superclue"):
+                 "harmbench", "xstest", "superclue", "mmmu", "mathvista"):
         assert name in result.stdout.lower(), f"missing benchmark {name} in doctor output"
 
 

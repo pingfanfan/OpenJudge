@@ -1,13 +1,14 @@
 from prism.benchmarks import default_registry
 
 
-def test_default_registry_has_thirteen_benchmarks():
+def test_default_registry_has_fifteen_benchmarks():
     names = default_registry().names()
     assert set(names) == {
         "mmlu_pro", "aime", "humaneval",
         "gpqa", "math500", "livecodebench",
         "ifeval", "ceval", "simpleqa", "truthfulqa",
         "harmbench", "xstest", "superclue",
+        "mmmu", "mathvista",
     }
 
 

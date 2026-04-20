@@ -11,7 +11,9 @@ def default_registry() -> BenchmarkRegistry:
     from prism.benchmarks.ifeval.benchmark import IFEvalBenchmark
     from prism.benchmarks.livecodebench.benchmark import LiveCodeBenchBenchmark
     from prism.benchmarks.math500.benchmark import MATH500Benchmark
+    from prism.benchmarks.mathvista.benchmark import MathVistaBenchmark
     from prism.benchmarks.mmlu_pro.benchmark import MMLUProBenchmark
+    from prism.benchmarks.mmmu.benchmark import MMMUBenchmark
     from prism.benchmarks.simpleqa.benchmark import SimpleQABenchmark
     from prism.benchmarks.superclue.benchmark import SuperCLUEBenchmark
     from prism.benchmarks.truthfulqa.benchmark import TruthfulQABenchmark
@@ -31,6 +33,8 @@ def default_registry() -> BenchmarkRegistry:
     reg.register(HarmBenchBenchmark)
     reg.register(XSTestBenchmark)
     reg.register(SuperCLUEBenchmark)
+    reg.register(MMMUBenchmark)
+    reg.register(MathVistaBenchmark)
     return reg
 
 
