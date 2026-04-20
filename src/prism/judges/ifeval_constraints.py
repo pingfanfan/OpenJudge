@@ -63,3 +63,59 @@ def _check_number_words(
         passed=ok,
         reason=f"expected words {relation} {num_words}, got {count}",
     )
+
+
+@register("keywords:existence")
+def _check_keywords_existence(
+    *, text: str, keywords: list[str], **_: Any
+) -> ConstraintResult:
+    missing = [k for k in keywords if k.lower() not in text.lower()]
+    return ConstraintResult(
+        passed=not missing,
+        reason=f"missing keywords: {missing}" if missing else None,
+    )
+
+
+@register("keywords:forbidden_words")
+def _check_forbidden(
+    *, text: str, forbidden_words: list[str], **_: Any
+) -> ConstraintResult:
+    found = [w for w in forbidden_words if w.lower() in text.lower()]
+    return ConstraintResult(
+        passed=not found,
+        reason=f"forbidden words present: {found}" if found else None,
+    )
+
+
+@register("change_case:english_lowercase")
+def _check_lowercase(*, text: str, **_: Any) -> ConstraintResult:
+    return ConstraintResult(
+        passed=text == text.lower(),
+        reason="found uppercase letters" if text != text.lower() else None,
+    )
+
+
+@register("change_case:english_capital")
+def _check_uppercase(*, text: str, **_: Any) -> ConstraintResult:
+    return ConstraintResult(
+        passed=text == text.upper(),
+        reason="found lowercase letters" if text != text.upper() else None,
+    )
+
+
+@register("punctuation:no_comma")
+def _check_no_comma(*, text: str, **_: Any) -> ConstraintResult:
+    return ConstraintResult(
+        passed="," not in text,
+        reason="commas found" if "," in text else None,
+    )
+
+
+@register("startend:quotation")
+def _check_quotation(*, text: str, **_: Any) -> ConstraintResult:
+    t = text.strip()
+    ok = len(t) >= 2 and t.startswith('"') and t.endswith('"')
+    return ConstraintResult(
+        passed=ok,
+        reason="not wrapped in double quotes" if not ok else None,
+    )
