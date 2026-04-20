@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 Effort = Literal["off", "low", "medium", "high", "max"]
 
@@ -22,8 +22,8 @@ class RateLimit(BaseModel):
 class Cost(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    input_per_mtok: float = 0.0
-    output_per_mtok: float = 0.0
+    input_per_mtok: float = Field(ge=0.0, default=0.0)
+    output_per_mtok: float = Field(ge=0.0, default=0.0)
 
 
 class ModelProfile(BaseModel):
@@ -39,8 +39,3 @@ class ModelProfile(BaseModel):
     reasoning_effort: Effort | None = None
     rate_limit: RateLimit = Field(default_factory=RateLimit)
     cost: Cost = Field(default_factory=Cost)
-
-    @field_validator("reasoning_effort")
-    @classmethod
-    def _check_effort(cls, v: Effort | None) -> Effort | None:
-        return v

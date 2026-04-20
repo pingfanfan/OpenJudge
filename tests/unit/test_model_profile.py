@@ -1,5 +1,6 @@
 import pytest
 from pathlib import Path
+from pydantic import ValidationError
 from prism.config.model_profile import ModelProfile, Thinking, RateLimit, Cost
 from prism.config.loader import load_model_profile
 
@@ -28,11 +29,16 @@ def test_anthropic_thinking_profile():
 
 
 def test_invalid_effort_rejected():
-    with pytest.raises(ValueError, match="effort"):
+    with pytest.raises(ValidationError, match="reasoning_effort"):
         ModelProfile(
             id="x", provider="openai", model="x",
             reasoning_effort="super-mega",
         )
+
+
+def test_negative_cost_rejected():
+    with pytest.raises(ValidationError, match="input_per_mtok"):
+        Cost(input_per_mtok=-1.0)
 
 
 def test_load_from_yaml(tmp_path: Path):
