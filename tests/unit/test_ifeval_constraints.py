@@ -186,3 +186,23 @@ def test_bullet_lists():
         kwargs={"num_bullets": 3},
     )
     assert r.passed is True
+
+
+def test_keywords_existence_word_boundary():
+    """'class' should NOT be satisfied by 'classify' (substring, not word)."""
+    r = check_constraint(
+        constraint_id="keywords:existence",
+        text="I classify that request as fine.",
+        kwargs={"keywords": ["class"]},
+    )
+    assert r.passed is False
+
+
+def test_keywords_forbidden_word_boundary():
+    """'class' forbidden should NOT fire on 'classify'."""
+    r = check_constraint(
+        constraint_id="keywords:forbidden_words",
+        text="I classify things.",
+        kwargs={"forbidden_words": ["class"]},
+    )
+    assert r.passed is True

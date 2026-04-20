@@ -35,8 +35,11 @@ class CEvalBenchmark(Benchmark):
         source: str = "ceval/ceval-exam",
         source_format: str = "hf",
         split: str = "val",
-        subset_name: str | None = None,
+        subset_name: str | None = "computer_network",
     ) -> None:
+        # Note: C-Eval is partitioned by subject. The default "computer_network"
+        # is a representative subject; run with --benchmark-source override
+        # for other subjects or aggregated runs.
         self.source = source
         self.source_format = source_format
         self.split = split

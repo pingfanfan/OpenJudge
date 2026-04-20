@@ -1,10 +1,27 @@
 """IFEval constraint checkers.
 
 Each checker verifies a single IFEval-style constraint and returns a ConstraintResult.
-The plugin registry maps constraint IDs (like 'length_constraints:number_words') to
-callables with signature (text, **kwargs) -> ConstraintResult.
+The plugin registry maps constraint IDs to callables with signature
+(text, **kwargs) -> ConstraintResult.
 
-Task 4 ships the registry + one checker. Tasks 5-6 fill in 11 more.
+**Supported constraint IDs (12 of 25 from the IFEval paper):**
+
+- length_constraints:number_words
+- length_constraints:number_sentences
+- length_constraints:number_paragraphs
+- keywords:existence
+- keywords:forbidden_words
+- change_case:english_lowercase
+- change_case:english_capital
+- punctuation:no_comma
+- startend:quotation
+- startend:end_checker
+- detectable_content:number_placeholders
+- detectable_format:number_bullet_lists
+
+Unknown constraint IDs return ConstraintResult(supported=False). IFEvalJudge
+surfaces this as reduced confidence on the JudgeResult, so callers know when
+some constraints could not be evaluated.
 """
 from __future__ import annotations
 
@@ -75,7 +92,9 @@ def _check_number_words(
 def _check_keywords_existence(
     *, text: str, keywords: list[str], **_: Any
 ) -> ConstraintResult:
-    missing = [k for k in keywords if k.lower() not in text.lower()]
+    # Case-sensitive word-boundary match to match IFEval reference behavior:
+    # "classify" should NOT satisfy keyword "class".
+    missing = [k for k in keywords if not re.search(rf"\b{re.escape(k)}\b", text)]
     return ConstraintResult(
         passed=not missing,
         reason=f"missing keywords: {missing}" if missing else None,
@@ -86,7 +105,7 @@ def _check_keywords_existence(
 def _check_forbidden(
     *, text: str, forbidden_words: list[str], **_: Any
 ) -> ConstraintResult:
-    found = [w for w in forbidden_words if w.lower() in text.lower()]
+    found = [w for w in forbidden_words if re.search(rf"\b{re.escape(w)}\b", text)]
     return ConstraintResult(
         passed=not found,
         reason=f"forbidden words present: {found}" if found else None,

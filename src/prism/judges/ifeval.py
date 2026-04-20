@@ -46,7 +46,11 @@ class IFEvalJudge(Judge):
                 reasoning=f"all constraints unsupported: {unsupported_ids}",
             )
 
-        score = sum(passed) / supported_count
+        # Score counts ALL constraints in the denominator so unsupported checks
+        # do not inflate the score. Unsupported constraints are surfaced via
+        # lower confidence (= supported / total).
+        passed_count = sum(passed)
+        score = passed_count / total
         confidence = supported_count / total
         reasoning = None
         if unsupported_ids:

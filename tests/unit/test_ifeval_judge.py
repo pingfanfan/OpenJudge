@@ -36,8 +36,22 @@ async def test_unsupported_constraint_lowers_confidence():
     ]
     judge = IFEvalJudge(constraints=constraints)
     r = await judge.judge(output="hello", expected="")
-    # 1 of 2 constraints supported; the supported one passes → score = 1/1 = 1.0, confidence = 1/2 = 0.5  # noqa: E501
-    assert r.score == 1.0
+    # 2 constraints total; 1 supported (passes) + 1 unsupported → score = 1/2, confidence = 1/2.
+    assert r.score == 0.5
     assert r.confidence == 0.5
     assert r.reasoning is not None
     assert "nonexistent" in r.reasoning
+
+
+@pytest.mark.asyncio
+async def test_all_unsupported_returns_zero_confidence():
+    constraints = [
+        {"id": "fake:one", "kwargs": {}},
+        {"id": "fake:two", "kwargs": {}},
+    ]
+    judge = IFEvalJudge(constraints=constraints)
+    r = await judge.judge(output="anything", expected="")
+    assert r.score == 0.0
+    assert r.confidence == 0.0
+    assert r.reasoning is not None
+    assert "all constraints unsupported" in r.reasoning
