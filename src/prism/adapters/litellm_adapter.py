@@ -1,4 +1,4 @@
-import time
+from time import perf_counter
 
 import litellm
 
@@ -27,9 +27,9 @@ class LiteLLMAdapter(Adapter):
             kwargs["seed"] = request.seed
         kwargs.update(extra)
 
-        t0 = time.perf_counter()
+        t0 = perf_counter()
         resp = await litellm.acompletion(**kwargs)
-        latency_ms = (time.perf_counter() - t0) * 1000.0
+        latency_ms = (perf_counter() - t0) * 1000.0
 
         choice = resp.choices[0]
         message = choice.message
@@ -46,6 +46,7 @@ class LiteLLMAdapter(Adapter):
             tokens_in=tokens_in,
             tokens_out=tokens_out,
             latency_ms=latency_ms,
+            # Cost is computed from profile-defined pricing, not provider-reported cost.
             cost_usd=compute_cost(self.profile.cost, tokens_in=tokens_in, tokens_out=tokens_out),
             raw=resp.model_dump() if hasattr(resp, "model_dump") else {},
             finish_reason=getattr(choice, "finish_reason", None),

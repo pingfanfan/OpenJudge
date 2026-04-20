@@ -92,3 +92,122 @@ async def test_openai_call_passes_reasoning_effort(openai_profile):
     assert kwargs["model"].startswith("openai/")
     assert kwargs["reasoning_effort"] == "high"
     assert resp.cost_usd == pytest.approx(10.0 * 5 / 1_000_000 + 40.0 * 2 / 1_000_000)
+
+
+@pytest.mark.asyncio
+async def test_stop_passthrough(openai_profile):
+    adapter = LiteLLMAdapter(openai_profile)
+    req = AdapterRequest(
+        messages=[{"role": "user", "content": "x"}],
+        max_output_tokens=16,
+        stop=["</stop>", "DONE"],
+    )
+    fake = _FakeResponse("ok", pt=1, ct=1)
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=fake),
+    ) as m:
+        await adapter.complete(req)
+    assert m.call_args.kwargs["stop"] == ["</stop>", "DONE"]
+
+
+@pytest.mark.asyncio
+async def test_seed_passthrough(openai_profile):
+    adapter = LiteLLMAdapter(openai_profile)
+    req = AdapterRequest(
+        messages=[{"role": "user", "content": "x"}],
+        max_output_tokens=16,
+        seed=42,
+    )
+    fake = _FakeResponse("ok", pt=1, ct=1)
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=fake),
+    ) as m:
+        await adapter.complete(req)
+    assert m.call_args.kwargs["seed"] == 42
+
+
+@pytest.mark.asyncio
+async def test_tools_passthrough(openai_profile):
+    adapter = LiteLLMAdapter(openai_profile)
+    tools = [{"type": "function", "function": {"name": "get_weather"}}]
+    req = AdapterRequest(
+        messages=[{"role": "user", "content": "x"}],
+        max_output_tokens=16,
+        tools=tools,
+    )
+    fake = _FakeResponse("ok", pt=1, ct=1)
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=fake),
+    ) as m:
+        await adapter.complete(req)
+    assert m.call_args.kwargs["tools"] == tools
+
+
+@pytest.mark.asyncio
+async def test_reasoning_text_none_when_attr_missing(openai_profile):
+    """When the response message has no reasoning_content attribute, reasoning_text is None."""
+    adapter = LiteLLMAdapter(openai_profile)
+    req = AdapterRequest(
+        messages=[{"role": "user", "content": "x"}],
+        max_output_tokens=16,
+    )
+
+    class _MessageNoReasoning:
+        content = "hello"
+
+    class _ChoiceNoReasoning:
+        message = _MessageNoReasoning()
+        finish_reason = "stop"
+
+    class _RespNoReasoning:
+        choices = [_ChoiceNoReasoning()]
+
+        class usage:
+            prompt_tokens = 1
+            completion_tokens = 1
+
+        def model_dump(self):
+            return {"fake": True}
+
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=_RespNoReasoning()),
+    ):
+        resp = await adapter.complete(req)
+    assert resp.reasoning_text is None
+
+
+@pytest.mark.asyncio
+async def test_raw_defaults_empty_when_no_model_dump(openai_profile):
+    """When the response object has no model_dump(), raw is an empty dict."""
+    adapter = LiteLLMAdapter(openai_profile)
+    req = AdapterRequest(
+        messages=[{"role": "user", "content": "x"}],
+        max_output_tokens=16,
+    )
+
+    class _MsgNoDump:
+        content = "x"
+        reasoning_content = None
+
+    class _ChoiceNoDump:
+        message = _MsgNoDump()
+        finish_reason = "stop"
+
+    class _RespNoDump:
+        choices = [_ChoiceNoDump()]
+
+        class usage:
+            prompt_tokens = 0
+            completion_tokens = 0
+        # No model_dump method
+
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=_RespNoDump()),
+    ):
+        resp = await adapter.complete(req)
+    assert resp.raw == {}
