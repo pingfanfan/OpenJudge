@@ -58,7 +58,11 @@ class LimitRunner:
                 prompt_id=spec.prompt_id,
                 task_id=benchmark.name,
                 version=spec.version,
-                text=spec.messages[-1]["content"] if isinstance(spec.messages[-1].get("content"), str) else "<multimodal>",
+                text=(
+                    spec.messages[-1]["content"]
+                    if isinstance(spec.messages[-1].get("content"), str)
+                    else "<multimodal>"
+                ),
                 system=None,
             )
             prompts_to_send[spec.prompt_id] = spec.messages

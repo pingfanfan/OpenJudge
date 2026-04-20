@@ -11,12 +11,11 @@ from prism.judges.rules import NumericJudge
 if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
-_PROMPT_TEMPLATE = """Solve the following math problem. Show your reasoning step by step, then give the final answer on the last line as a single number (or simplified expression).
-
-Problem:
-{problem}
-
-Final answer on the last line."""
+_PROMPT_TEMPLATE = (
+    "Solve the following math problem. Show your reasoning step by step,"
+    " then give the final answer on the last line as a single number"
+    " (or simplified expression).\n\nProblem:\n{problem}\n\nFinal answer on the last line."
+)
 
 
 class MATH500Benchmark(Benchmark):

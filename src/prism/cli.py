@@ -83,7 +83,7 @@ def run_cmd(
     model: Path = typer.Option(  # noqa: B008
         ..., "--model", exists=True, help="Path to model profile YAML"
     ),
-    judge_model: Path | None = typer.Option(
+    judge_model: Path | None = typer.Option(  # noqa: B008
         None,
         "--judge-model",
         exists=True,

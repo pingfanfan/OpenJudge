@@ -9,8 +9,9 @@ Task 4 ships the registry + one checker. Tasks 5-6 fill in 11 more.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -38,7 +39,9 @@ def check_constraint(
     """Look up and invoke the checker for a constraint_id."""
     fn = CONSTRAINT_CHECKERS.get(constraint_id)
     if fn is None:
-        return ConstraintResult(passed=False, supported=False, reason=f"unknown constraint: {constraint_id!r}")
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown constraint: {constraint_id!r}"
+        )
     try:
         return fn(text=text, **kwargs)
     except Exception as e:
@@ -59,7 +62,9 @@ def _check_number_words(
     elif relation == "exactly":
         ok = count == num_words
     else:
-        return ConstraintResult(passed=False, supported=False, reason=f"unknown relation: {relation!r}")
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown relation: {relation!r}"
+        )
     return ConstraintResult(
         passed=ok,
         reason=f"expected words {relation} {num_words}, got {count}",
@@ -135,7 +140,9 @@ def _check_number_sentences(
     elif relation == "exactly":
         ok = count == num_sentences
     else:
-        return ConstraintResult(passed=False, supported=False, reason=f"unknown relation: {relation!r}")
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown relation: {relation!r}"
+        )
     return ConstraintResult(passed=ok, reason=f"sentences {relation} {num_sentences}, got {count}")
 
 

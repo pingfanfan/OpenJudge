@@ -11,7 +11,7 @@ from prism.service import RunService
 
 class _SubjectAdapter(Adapter):
     async def complete(self, request: AdapterRequest) -> AdapterResponse:
-        # Always answers "Paris" — correct for q1 ("capital of France"), wrong for q2 ("Jane Austen").
+        # Always answers "Paris" — correct for q1 ("capital of France"), wrong for q2 ("Jane Austen").  # noqa: E501
         return AdapterResponse(
             text="Paris.",
             reasoning_text=None,
@@ -68,6 +68,6 @@ async def test_limit_runner_wires_llm_judge_end_to_end(tmp_path: Path):
         subset="full",
     )
 
-    # 2 prompts: q1 expected "Paris" (judge returns 1.0), q2 expected "Jane Austen" (judge returns 0.0) → pass_at_1 = 0.5
+    # 2 prompts: q1 expected "Paris" (judge returns 1.0), q2 expected "Jane Austen" (judge returns 0.0) → pass_at_1 = 0.5  # noqa: E501
     assert result["prompt_count"] == 2
     assert result["pass_at_1"] == pytest.approx(0.5)

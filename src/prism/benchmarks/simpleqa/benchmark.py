@@ -15,9 +15,12 @@ _PROMPT_TEMPLATE = """Answer the following factual question concisely in 1-2 sen
 
 Question: {question}"""
 
-_RUBRIC = """Score 1.0 if the MODEL_OUTPUT is factually correct (matches the REFERENCE answer, allowing for phrasing differences or extra context).
-Score 0.0 if the MODEL_OUTPUT is factually incorrect or refuses to answer.
-If the output is partially correct (e.g., right person but wrong year), score 0.5."""
+_RUBRIC = (
+    "Score 1.0 if the MODEL_OUTPUT is factually correct"
+    " (matches the REFERENCE answer, allowing for phrasing differences or extra context).\n"
+    "Score 0.0 if the MODEL_OUTPUT is factually incorrect or refuses to answer.\n"
+    "If the output is partially correct (e.g., right person but wrong year), score 0.5."
+)
 
 
 class SimpleQABenchmark(Benchmark):

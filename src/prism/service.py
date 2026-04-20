@@ -6,11 +6,11 @@ from sqlalchemy import func, select
 
 from prism.adapters.base import Adapter, AdapterResponse
 from prism.config.model_profile import ModelProfile
+from prism.judges.base import Judge
 from prism.orchestrator.matrix import Cell, expand_matrix
 from prism.orchestrator.runner import OrchestratorRunner
 from prism.storage.artifacts import ArtifactStore
 from prism.storage.database import Database
-from prism.judges.base import Judge
 from prism.storage.schema import Model, Prompt, Response, Run, Score, Task
 
 

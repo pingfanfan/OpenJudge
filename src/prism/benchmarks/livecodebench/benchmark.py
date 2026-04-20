@@ -11,11 +11,11 @@ from prism.judges.code_exec import PytestJudge
 if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
-_PROMPT_TEMPLATE = """# {title}
-
-{description}
-
-Return ONLY the complete Python function implementation in a ```python code block. Do not include any explanation text."""
+_PROMPT_TEMPLATE = (
+    "# {title}\n\n{description}\n\n"
+    "Return ONLY the complete Python function implementation in a"
+    " ```python code block. Do not include any explanation text."
+)
 
 
 class LiveCodeBenchBenchmark(Benchmark):

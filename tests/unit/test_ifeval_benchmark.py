@@ -15,7 +15,7 @@ def test_load_prompts():
     assert "climate change" in first.messages[0]["content"]
     # metadata carries zipped (id, kwargs) pairs
     assert first.metadata["constraints"] == [
-        {"id": "length_constraints:number_words", "kwargs": {"relation": "at least", "num_words": 100}},
+        {"id": "length_constraints:number_words", "kwargs": {"relation": "at least", "num_words": 100}},  # noqa: E501
         {"id": "punctuation:no_comma", "kwargs": {}},
     ]
 

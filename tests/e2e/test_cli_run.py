@@ -67,7 +67,7 @@ def test_run_command_accepts_judge_model(tmp_path: Path):
     fake_result = {"run_id": "run-x", "prompt_count": 1, "pass_at_1": 1.0, "total_cost_usd": 0.0}
 
     with patch("prism.cli.LimitRunner") as MockRunner, \
-         patch("prism.cli.LiteLLMAdapter") as MockAdapter:
+         patch("prism.cli.LiteLLMAdapter") as MockAdapter:  # noqa: N806
         instance = MockRunner.return_value
         instance.run = AsyncMock(return_value=fake_result)
 
@@ -76,7 +76,8 @@ def test_run_command_accepts_judge_model(tmp_path: Path):
             "--model", str(model_cfg),
             "--judge-model", str(judge_cfg),
             "--work-dir", str(tmp_path),
-            "--benchmark-source", str(Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"),
+            "--benchmark-source",
+            str(Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"),
             "--benchmark-format", "jsonl",
         ])
 

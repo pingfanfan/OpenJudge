@@ -11,14 +11,12 @@ from prism.judges.rules import RegexJudge
 if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
-_PROMPT_TEMPLATE = """Answer the following graduate-level multiple-choice question. Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".
-
-Question: {question}
-
-Choices:
-{choices_block}
-
-Reason carefully, then give your final answer as "Answer: X"."""
+_PROMPT_TEMPLATE = (
+    "Answer the following graduate-level multiple-choice question."
+    ' Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".\n'
+    "\nQuestion: {question}\n\nChoices:\n{choices_block}"
+    '\n\nReason carefully, then give your final answer as "Answer: X".'
+)
 
 _JUDGE_PATTERN = r"Answer:\s*([A-D])\b"
 

@@ -1,9 +1,6 @@
-import pytest
-
 from prism.judges.ifeval_constraints import (
-    ConstraintResult,
-    check_constraint,
     CONSTRAINT_CHECKERS,
+    check_constraint,
 )
 
 

@@ -53,7 +53,7 @@ class IFEvalBenchmark(Benchmark):
         pid = str(row.get("key") or row.get("prompt_id") or row["prompt"][:32])
         ids = row.get("instruction_id_list", [])
         kwargs_list = row.get("kwargs", [{}] * len(ids))
-        constraints = [{"id": cid, "kwargs": kw} for cid, kw in zip(ids, kwargs_list)]
+        constraints = [{"id": cid, "kwargs": kw} for cid, kw in zip(ids, kwargs_list, strict=False)]
         return PromptSpec(
             prompt_id=f"ifeval-{pid}",
             task_id="ifeval",

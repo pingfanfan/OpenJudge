@@ -41,6 +41,7 @@ def test_benchmark_needs_llm_judge_defaults_false():
 def test_make_judge_accepts_llm_judge_adapter_kwarg():
     """All benchmarks must accept (but may ignore) the llm_judge_adapter kwarg."""
     from pathlib import Path
+
     from prism.benchmarks.mmlu_pro.benchmark import MMLUProBenchmark
     fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
     bm = MMLUProBenchmark(source=str(fixture), source_format="jsonl")
