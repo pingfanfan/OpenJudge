@@ -59,13 +59,31 @@ uv run prism run --track limit --benchmark simpleqa \
     --judge-model configs/models/claude-opus-4-7-max.example.yaml
 ```
 
-P2f (leaderboard + special views), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
+P2g (contamination probe), P3 (Agent Runner), P4 (Meta-Ability), P5 (Web UI) are planned.
 
 ## Safety benchmarks
 
 HarmBench and XSTest test model safety and over-refusal behavior. See
 [`docs/safety-considerations.md`](docs/safety-considerations.md) for data
 handling and ethical usage notes before running them.
+
+## Publishing a leaderboard
+
+After running one or more benchmarks, render a static HTML leaderboard:
+
+````bash
+uv run prism leaderboard publish ./.prism_runs --output ./leaderboard
+````
+
+This produces `leaderboard/index.html` (human-readable) and `leaderboard/data.json`
+(machine-readable). The HTML has three sections:
+
+- **Main Leaderboard** — model × benchmark pass@1 grid
+- **Context Length Staircase** — per-length accuracy for NIAH/RULER runs
+- **Reasoning Effort Sweep** — same base model compared across thinking=off/high/max
+
+To publish to GitHub Pages, commit the `leaderboard/` directory to a `gh-pages`
+branch, or copy its contents to your Pages source.
 
 ## License
 
