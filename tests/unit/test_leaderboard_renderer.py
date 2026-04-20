@@ -1,15 +1,19 @@
 from pathlib import Path
 
-from prism.leaderboard.renderer import render_leaderboard_html, render_leaderboard
+from prism.leaderboard.renderer import render_leaderboard, render_leaderboard_html
 
 
 def test_render_main_table_contains_models_and_benchmarks():
     data = {
         "main": [
-            {"model_id": "gpt-5@high", "benchmark": "mmlu_pro", "mean_score": 0.85, "count": 100, "total_cost": 1.5},
-            {"model_id": "gpt-5@high", "benchmark": "niah", "mean_score": 0.92, "count": 30, "total_cost": 0.3},
-            {"model_id": "claude-opus@max", "benchmark": "mmlu_pro", "mean_score": 0.88, "count": 100, "total_cost": 2.0},
-            {"model_id": "claude-opus@max", "benchmark": "niah", "mean_score": 0.95, "count": 30, "total_cost": 0.4},
+            {"model_id": "gpt-5@high", "benchmark": "mmlu_pro",
+             "mean_score": 0.85, "count": 100, "total_cost": 1.5},
+            {"model_id": "gpt-5@high", "benchmark": "niah",
+             "mean_score": 0.92, "count": 30, "total_cost": 0.3},
+            {"model_id": "claude-opus@max", "benchmark": "mmlu_pro",
+             "mean_score": 0.88, "count": 100, "total_cost": 2.0},
+            {"model_id": "claude-opus@max", "benchmark": "niah",
+             "mean_score": 0.95, "count": 30, "total_cost": 0.4},
         ],
         "staircase": [],
         "sweep_groups": [],
@@ -57,8 +61,10 @@ def test_render_staircase_section_when_present():
 def test_render_sweep_section_when_present():
     data = {
         "main": [
-            {"model_id": "gpt-5@high", "benchmark": "mmlu_pro", "mean_score": 0.8, "count": 100, "total_cost": 1.0},
-            {"model_id": "gpt-5@max", "benchmark": "mmlu_pro", "mean_score": 0.9, "count": 100, "total_cost": 2.0},
+            {"model_id": "gpt-5@high", "benchmark": "mmlu_pro",
+             "mean_score": 0.8, "count": 100, "total_cost": 1.0},
+            {"model_id": "gpt-5@max", "benchmark": "mmlu_pro",
+             "mean_score": 0.9, "count": 100, "total_cost": 2.0},
         ],
         "staircase": [],
         "sweep_groups": [
@@ -76,7 +82,12 @@ def test_render_empty_data_produces_valid_html():
     html = render_leaderboard_html(data)
     assert "<html" in html
     assert "</html>" in html
-    assert "no data" in html.lower() or "empty" in html.lower() or "0 benchmarks" in html.lower() or "prism run" in html.lower()
+    assert (
+        "no data" in html.lower()
+        or "empty" in html.lower()
+        or "0 benchmarks" in html.lower()
+        or "prism run" in html.lower()
+    )
 
 
 def test_render_writes_files(tmp_path: Path):

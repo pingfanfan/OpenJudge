@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from prism.leaderboard import templates as T
+from prism.leaderboard import templates as tmpl
 
 
 def _esc(s: Any) -> str:
@@ -44,7 +44,7 @@ def _render_main(main_rows: list[dict[str, Any]]) -> str:
                 cells.append(f'<td class="{cls}">{pct}%</td>')
         row_html_parts.append("<tr>" + "".join(cells) + "</tr>")
     rows = "\n".join(row_html_parts)
-    return T.MAIN_HEADER.format(benchmark_headers=header_cells, rows=rows)
+    return tmpl.MAIN_HEADER.format(benchmark_headers=header_cells, rows=rows)
 
 
 def _render_staircase(staircase_rows: list[dict[str, Any]]) -> str:
@@ -55,12 +55,12 @@ def _render_staircase(staircase_rows: list[dict[str, Any]]) -> str:
     by_cell: dict[tuple[str, int], dict[str, Any]] = {
         (r["model_id"], r["context_tokens"]): r for r in staircase_rows
     }
-    header_cells = "".join(f"<th>{_esc(L)}</th>" for L in lengths)
+    header_cells = "".join(f"<th>{_esc(ctx_len)}</th>" for ctx_len in lengths)
     row_html_parts = []
     for m in models:
         cells = [f'<td class="model">{_esc(m)}</td>']
-        for L in lengths:
-            c = by_cell.get((m, L))
+        for ctx_len in lengths:
+            c = by_cell.get((m, ctx_len))
             if c is None:
                 cells.append('<td class="empty">—</td>')
             else:
@@ -69,7 +69,7 @@ def _render_staircase(staircase_rows: list[dict[str, Any]]) -> str:
                 cells.append(f'<td class="{cls}">{pct}%</td>')
         row_html_parts.append("<tr>" + "".join(cells) + "</tr>")
     rows = "\n".join(row_html_parts)
-    return T.STAIRCASE_HEADER.format(length_headers=header_cells, rows=rows)
+    return tmpl.STAIRCASE_HEADER.format(length_headers=header_cells, rows=rows)
 
 
 def _render_sweep(sweep_groups: list[dict[str, Any]], main_rows: list[dict[str, Any]]) -> str:
@@ -99,7 +99,7 @@ def _render_sweep(sweep_groups: list[dict[str, Any]], main_rows: list[dict[str, 
                 f"<td>${cost:.4f}</td></tr>"
             )
     rows = "\n".join(row_parts)
-    return T.SWEEP_HEADER.format(rows=rows)
+    return tmpl.SWEEP_HEADER.format(rows=rows)
 
 
 def render_leaderboard_html(data: dict[str, Any]) -> str:
@@ -107,8 +107,8 @@ def render_leaderboard_html(data: dict[str, Any]) -> str:
     staircase = _render_staircase(data.get("staircase", []))
     sweep = _render_sweep(data.get("sweep_groups", []), data.get("main", []))
     if not any([main, staircase, sweep]):
-        main = T.EMPTY_STATE
-    return T.PAGE_TEMPLATE.format(
+        main = tmpl.EMPTY_STATE
+    return tmpl.PAGE_TEMPLATE.format(
         main_section=main,
         staircase_section=staircase,
         sweep_section=sweep,

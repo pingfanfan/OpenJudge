@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import func, select
 
@@ -32,7 +32,7 @@ async def aggregate_by_model_benchmark(*, db: Database) -> list[dict[str, Any]]:
             "model_id": r.model_id,
             "benchmark": r.benchmark,
             "mean_score": float(r.mean_score or 0.0),
-            "count": int(r.count or 0),
+            "count": int(cast(Any, r.count)) if r.count is not None else 0,
             "total_cost": float(r.total_cost or 0.0),
         }
         for r in rows

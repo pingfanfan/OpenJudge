@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -177,8 +178,10 @@ app.add_typer(leaderboard_app, name="leaderboard")
 
 @leaderboard_app.command("publish")
 def leaderboard_publish_cmd(
-    workdir: Path = typer.Argument(..., exists=True, help="Path containing prism.db"),
-    output: Path = typer.Option(..., "--output", help="Directory to write index.html + data.json"),
+    workdir: Annotated[Path, typer.Argument(exists=True, help="Path containing prism.db")],
+    output: Annotated[
+        Path, typer.Option("--output", help="Directory to write index.html + data.json")
+    ],
 ) -> None:
     """Render the leaderboard HTML from a Prism workdir's SQLite DB."""
     db_path = workdir / "prism.db"
@@ -186,7 +189,7 @@ def leaderboard_publish_cmd(
         console.print(f"[red]No prism.db found in {workdir}[/red]")
         raise typer.Exit(code=2)
 
-    async def _build() -> dict:
+    async def _build() -> dict[str, Any]:
         db = Database(db_path)
         main = await aggregate_by_model_benchmark(db=db)
         sweep_groups = await list_thinking_variants(db=db)

@@ -28,8 +28,9 @@ def test_leaderboard_publish_empty_workdir_still_produces_html(tmp_path: Path):
     workdir = tmp_path / "workdir"
     workdir.mkdir()
     # Initialize an empty DB so the publish command has something to query.
-    from prism.storage.database import Database
     import asyncio
+
+    from prism.storage.database import Database
     async def _init():
         db = Database(workdir / "prism.db")
         await db.init()
