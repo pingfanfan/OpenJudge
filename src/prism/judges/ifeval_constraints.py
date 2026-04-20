@@ -8,6 +8,7 @@ Task 4 ships the registry + one checker. Tasks 5-6 fill in 11 more.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -118,4 +119,65 @@ def _check_quotation(*, text: str, **_: Any) -> ConstraintResult:
     return ConstraintResult(
         passed=ok,
         reason="not wrapped in double quotes" if not ok else None,
+    )
+
+
+@register("length_constraints:number_sentences")
+def _check_number_sentences(
+    *, text: str, relation: str = "at least", num_sentences: int, **_: Any
+) -> ConstraintResult:
+    sentences = [s for s in re.split(r"[.!?]+(?:\s+|$)", text) if s.strip()]
+    count = len(sentences)
+    if relation == "at least":
+        ok = count >= num_sentences
+    elif relation == "at most":
+        ok = count <= num_sentences
+    elif relation == "exactly":
+        ok = count == num_sentences
+    else:
+        return ConstraintResult(passed=False, supported=False, reason=f"unknown relation: {relation!r}")
+    return ConstraintResult(passed=ok, reason=f"sentences {relation} {num_sentences}, got {count}")
+
+
+@register("length_constraints:number_paragraphs")
+def _check_number_paragraphs(
+    *, text: str, num_paragraphs: int, **_: Any
+) -> ConstraintResult:
+    paragraphs = [p for p in text.split("\n\n") if p.strip()]
+    return ConstraintResult(
+        passed=len(paragraphs) == num_paragraphs,
+        reason=f"paragraphs: got {len(paragraphs)}, want {num_paragraphs}",
+    )
+
+
+@register("detectable_content:number_placeholders")
+def _check_placeholders(
+    *, text: str, num_placeholders: int, **_: Any
+) -> ConstraintResult:
+    found = re.findall(r"\[[^\]]+\]", text)
+    return ConstraintResult(
+        passed=len(found) >= num_placeholders,
+        reason=f"placeholders: got {len(found)}, want at least {num_placeholders}",
+    )
+
+
+@register("startend:end_checker")
+def _check_end(
+    *, text: str, end_phrase: str, **_: Any
+) -> ConstraintResult:
+    return ConstraintResult(
+        passed=text.rstrip().endswith(end_phrase.rstrip()),
+        reason=f"text does not end with {end_phrase!r}",
+    )
+
+
+@register("detectable_format:number_bullet_lists")
+def _check_bullets(
+    *, text: str, num_bullets: int, **_: Any
+) -> ConstraintResult:
+    lines = text.splitlines()
+    bullets = [ln for ln in lines if re.match(r"^\s*[\*\-]\s+", ln)]
+    return ConstraintResult(
+        passed=len(bullets) >= num_bullets,
+        reason=f"bullets: got {len(bullets)}, want at least {num_bullets}",
     )

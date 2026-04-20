@@ -143,3 +143,49 @@ def test_startend_quotation():
         kwargs={},
     )
     assert r2.passed is False
+
+
+def test_number_sentences():
+    r = check_constraint(
+        constraint_id="length_constraints:number_sentences",
+        text="One. Two. Three.",
+        kwargs={"relation": "at least", "num_sentences": 2},
+    )
+    assert r.passed is True
+
+
+def test_number_paragraphs():
+    text = "para1.\n\npara2.\n\npara3."
+    r = check_constraint(
+        constraint_id="length_constraints:number_paragraphs",
+        text=text,
+        kwargs={"num_paragraphs": 3},
+    )
+    assert r.passed is True
+
+
+def test_placeholders():
+    r = check_constraint(
+        constraint_id="detectable_content:number_placeholders",
+        text="Fill in [name] and [email] please.",
+        kwargs={"num_placeholders": 2},
+    )
+    assert r.passed is True
+
+
+def test_end_checker():
+    r = check_constraint(
+        constraint_id="startend:end_checker",
+        text="This ends with a specific phrase.",
+        kwargs={"end_phrase": "specific phrase."},
+    )
+    assert r.passed is True
+
+
+def test_bullet_lists():
+    r = check_constraint(
+        constraint_id="detectable_format:number_bullet_lists",
+        text="Here is a list:\n* item1\n* item2\n- item3",
+        kwargs={"num_bullets": 3},
+    )
+    assert r.passed is True
