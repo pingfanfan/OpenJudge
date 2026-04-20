@@ -10,7 +10,8 @@ from prism.orchestrator.matrix import Cell, expand_matrix
 from prism.orchestrator.runner import OrchestratorRunner
 from prism.storage.artifacts import ArtifactStore
 from prism.storage.database import Database
-from prism.storage.schema import Model, Prompt, Response, Run, Task
+from prism.judges.base import Judge
+from prism.storage.schema import Model, Prompt, Response, Run, Score, Task
 
 
 class RunService:
@@ -77,6 +78,8 @@ class RunService:
         adapters: dict[str, Adapter],
         prompts: dict[str, list[dict[str, Any]]],
         seeds: list[int],
+        judges: dict[str, Judge] | None = None,
+        expected: dict[str, str | None] | None = None,
         max_concurrency: int = 8,
     ) -> None:
         runner = OrchestratorRunner(
@@ -86,31 +89,46 @@ class RunService:
         )
         await runner.init()
 
-        cells = list(
-            expand_matrix(
-                models=list(profiles.values()),
-                prompt_ids=list(prompts.keys()),
-                seeds=seeds,
-            )
-        )
+        cells = list(expand_matrix(
+            models=list(profiles.values()),
+            prompt_ids=list(prompts.keys()),
+            seeds=seeds,
+        ))
 
         async def _persist(cell: Cell, resp: AdapterResponse) -> None:
             async with self.db.session() as s:
-                s.add(
-                    Response(
-                        run_id=run_id,
-                        model_id=cell.model_id,
-                        prompt_id=cell.prompt_id,
-                        seed=cell.seed,
-                        text=resp.text,
-                        reasoning_text=resp.reasoning_text,
-                        tokens_in=resp.tokens_in,
-                        tokens_out=resp.tokens_out,
-                        latency_ms=resp.latency_ms,
-                        cost_usd=resp.cost_usd,
-                        finish_reason=resp.finish_reason,
-                    )
+                row = Response(
+                    run_id=run_id,
+                    model_id=cell.model_id,
+                    prompt_id=cell.prompt_id,
+                    seed=cell.seed,
+                    text=resp.text,
+                    reasoning_text=resp.reasoning_text,
+                    tokens_in=resp.tokens_in,
+                    tokens_out=resp.tokens_out,
+                    latency_ms=resp.latency_ms,
+                    cost_usd=resp.cost_usd,
+                    finish_reason=resp.finish_reason,
                 )
+                s.add(row)
+                await s.flush()  # obtain row.id
+                if judges is not None and cell.prompt_id in judges:
+                    judge = judges[cell.prompt_id]
+                    exp = (expected or {}).get(cell.prompt_id) or ""
+                    try:
+                        jr = await judge.judge(output=resp.text, expected=exp)
+                    except Exception as e:  # judge failure is recorded, not fatal
+                        s.add(Score(
+                            response_id=row.id, judge=judge.name,
+                            score=0.0, confidence=0.0,
+                            reasoning=f"judge raised {type(e).__name__}: {e}",
+                        ))
+                    else:
+                        s.add(Score(
+                            response_id=row.id, judge=judge.name,
+                            score=jr.score, confidence=jr.confidence,
+                            reasoning=jr.reasoning,
+                        ))
                 await s.commit()
             self.artifacts.put(
                 run_id,
@@ -119,11 +137,8 @@ class RunService:
             )
 
         await runner.run(
-            run_id=run_id,
-            cells=cells,
-            prompts=prompts,
-            on_done=_persist,
-            max_concurrency=max_concurrency,
+            run_id=run_id, cells=cells, prompts=prompts,
+            on_done=_persist, max_concurrency=max_concurrency,
         )
 
         async with self.db.session() as s:
