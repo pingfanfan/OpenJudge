@@ -1,12 +1,14 @@
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 
 from prism.adapters.base import Adapter, AdapterRequest, AdapterResponse
 from prism.benchmarks.mmlu_pro.benchmark import MMLUProBenchmark
 from prism.config.model_profile import ModelProfile, RateLimit
 from prism.runners.limit import LimitRunner
 from prism.service import RunService
+from prism.storage.schema import Prompt
 
 
 class CorrectAdapter(Adapter):
@@ -186,9 +188,6 @@ async def test_limit_runner_passes_judge_adapter_to_make_judge(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_limit_runner_extracts_text_from_multimodal_content(tmp_path: Path):
     """When prompt.messages has list-content, Prompt.text should be the first text part."""
-    from prism.storage.schema import Prompt
-    from sqlalchemy import select
-
     fixture = Path(__file__).parent.parent / "fixtures" / "mmlu_pro_sample.jsonl"
 
     class _MultimodalBenchmark(MMLUProBenchmark):

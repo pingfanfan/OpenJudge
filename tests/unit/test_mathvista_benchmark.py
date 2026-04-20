@@ -6,7 +6,9 @@ from prism.judges.rules import NumericJudge
 
 def test_load_prompts_filters_to_free_form_numeric():
     fixture = Path(__file__).parent.parent / "fixtures" / "mathvista_sample.jsonl"
-    bm = MathVistaBenchmark(source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent)
+    bm = MathVistaBenchmark(
+        source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent
+    )
     prompts = list(bm.load_prompts(subset="full"))
     assert len(prompts) == 2
     ids = [p.prompt_id for p in prompts]
@@ -17,7 +19,9 @@ def test_load_prompts_filters_to_free_form_numeric():
 
 def test_emits_multimodal_content():
     fixture = Path(__file__).parent.parent / "fixtures" / "mathvista_sample.jsonl"
-    bm = MathVistaBenchmark(source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent)
+    bm = MathVistaBenchmark(
+        source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent
+    )
     first = next(iter(bm.load_prompts(subset="full")))
     content = first.messages[0]["content"]
     assert isinstance(content, list)
@@ -28,7 +32,9 @@ def test_emits_multimodal_content():
 
 def test_judge_is_numeric():
     fixture = Path(__file__).parent.parent / "fixtures" / "mathvista_sample.jsonl"
-    bm = MathVistaBenchmark(source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent)
+    bm = MathVistaBenchmark(
+        source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent
+    )
     prompt = next(iter(bm.load_prompts(subset="full")))
     judge = bm.make_judge(prompt)
     assert isinstance(judge, NumericJudge)

@@ -2,12 +2,14 @@
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 
 from prism.adapters.base import Adapter, AdapterRequest, AdapterResponse
 from prism.benchmarks.mmmu.benchmark import MMMUBenchmark
 from prism.config.model_profile import ModelProfile, RateLimit
 from prism.runners.limit import LimitRunner
 from prism.service import RunService
+from prism.storage.schema import Response
 
 
 class _ColorPickingAdapter(Adapter):
@@ -66,8 +68,6 @@ async def test_mmmu_multimodal_pipeline(tmp_path: Path):
     assert result["prompt_count"] == 2
     assert result["pass_at_1"] == pytest.approx(0.5)
 
-    from sqlalchemy import select
-    from prism.storage.schema import Response
     async with svc.db.session() as s:
         responses = list((await s.execute(select(Response))).scalars())
     assert len(responses) == 2

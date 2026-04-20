@@ -13,14 +13,12 @@ from prism.utils.image import image_to_data_url
 if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
-_PROMPT_TEXT_TEMPLATE = """Study the image above, then answer the question. Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".
-
-Question: {question}
-
-Choices:
-{choices_block}
-
-Give your final answer as "Answer: X"."""
+_PROMPT_TEXT_TEMPLATE = (
+    "Study the image above, then answer the question."
+    ' Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".'
+    "\n\nQuestion: {question}\n\nChoices:\n{choices_block}"
+    '\n\nGive your final answer as "Answer: X".'
+)
 
 _JUDGE_PATTERN = r"Answer:\s*([A-D])\b"
 

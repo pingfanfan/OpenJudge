@@ -13,9 +13,10 @@ from prism.utils.image import image_to_data_url
 if TYPE_CHECKING:
     from prism.adapters.base import Adapter
 
-_PROMPT_TEXT_TEMPLATE = """Study the image above, then answer the math question. Give your final numeric answer on the last line.
-
-Question: {question}"""
+_PROMPT_TEXT_TEMPLATE = (
+    "Study the image above, then answer the math question."
+    " Give your final numeric answer on the last line.\n\nQuestion: {question}"
+)
 
 
 class MathVistaBenchmark(Benchmark):

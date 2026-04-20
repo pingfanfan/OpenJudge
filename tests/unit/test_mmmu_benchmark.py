@@ -6,7 +6,9 @@ from prism.judges.rules import RegexJudge
 
 def test_load_prompts_emits_multimodal_content():
     fixture = Path(__file__).parent.parent / "fixtures" / "mmmu_sample.jsonl"
-    bm = MMMUBenchmark(source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent)
+    bm = MMMUBenchmark(
+        source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent
+    )
     prompts = list(bm.load_prompts(subset="full"))
     assert len(prompts) == 2
     first = prompts[0]
@@ -27,7 +29,9 @@ def test_load_prompts_emits_multimodal_content():
 
 def test_judge_is_regex():
     fixture = Path(__file__).parent.parent / "fixtures" / "mmmu_sample.jsonl"
-    bm = MMMUBenchmark(source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent)
+    bm = MMMUBenchmark(
+        source=str(fixture), source_format="jsonl", fixture_root=fixture.parent.parent
+    )
     prompt = next(iter(bm.load_prompts(subset="full")))
     judge = bm.make_judge(prompt)
     assert isinstance(judge, RegexJudge)
