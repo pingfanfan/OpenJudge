@@ -18,7 +18,8 @@ _PROMPT_TEMPLATE = (
     '\n\nGive your final answer as "Answer: X".'
 )
 
-_JUDGE_PATTERN = r"Answer:\s*([A-E])\b"
+# TruthfulQA MC1 has variable choice counts (typically 4-13). Accept any letter.
+_JUDGE_PATTERN = r"Answer:\s*([A-Z])\b"
 
 
 class TruthfulQABenchmark(Benchmark):
