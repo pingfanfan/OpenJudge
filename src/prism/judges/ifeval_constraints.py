@@ -67,18 +67,27 @@ def check_constraint(
 
 # ---- Base checkers (Task 4 ships this one; Tasks 5-6 add 11 more) ----
 
+def _relation_check(count: int, relation: str, target: int) -> bool | None:
+    """Return True/False per relation, or None if relation is unknown."""
+    table = {
+        "at least": count >= target,
+        "at most": count <= target,
+        "exactly": count == target,
+        "less than": count < target,
+        "more than": count > target,
+        "greater than": count > target,
+        "fewer than": count < target,
+    }
+    return table.get(relation)
+
+
 @register("length_constraints:number_words")
 def _check_number_words(
     *, text: str, relation: str, num_words: int, **_: Any
 ) -> ConstraintResult:
     count = len(text.split())
-    if relation == "at least":
-        ok = count >= num_words
-    elif relation == "at most":
-        ok = count <= num_words
-    elif relation == "exactly":
-        ok = count == num_words
-    else:
+    ok = _relation_check(count, relation, num_words)
+    if ok is None:
         return ConstraintResult(
             passed=False, supported=False, reason=f"unknown relation: {relation!r}"
         )
@@ -152,13 +161,8 @@ def _check_number_sentences(
 ) -> ConstraintResult:
     sentences = [s for s in re.split(r"[.!?]+(?:\s+|$)", text) if s.strip()]
     count = len(sentences)
-    if relation == "at least":
-        ok = count >= num_sentences
-    elif relation == "at most":
-        ok = count <= num_sentences
-    elif relation == "exactly":
-        ok = count == num_sentences
-    else:
+    ok = _relation_check(count, relation, num_sentences)
+    if ok is None:
         return ConstraintResult(
             passed=False, supported=False, reason=f"unknown relation: {relation!r}"
         )
@@ -206,4 +210,140 @@ def _check_bullets(
     return ConstraintResult(
         passed=len(bullets) >= num_bullets,
         reason=f"bullets: got {len(bullets)}, want at least {num_bullets}",
+    )
+
+
+@register("keywords:frequency")
+def _check_keyword_frequency(
+    *, text: str, keyword: str, frequency: int, relation: str = "at least", **_: Any
+) -> ConstraintResult:
+    """IFEval keyword-frequency check: keyword appears `frequency` times per `relation`."""
+    count = len(re.findall(rf"\b{re.escape(keyword)}\b", text))
+    ok = _relation_check(count, relation, frequency)
+    if ok is None:
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown relation: {relation!r}"
+        )
+    return ConstraintResult(
+        passed=ok,
+        reason=f"keyword {keyword!r}: got {count}, want {relation} {frequency}",
+    )
+
+
+@register("detectable_format:title")
+def _check_title(*, text: str, **_: Any) -> ConstraintResult:
+    """IFEval title check: response must contain a title wrapped in << … >>."""
+    ok = bool(re.search(r"<<[^<>]+>>", text))
+    return ConstraintResult(passed=ok, reason=None if ok else "missing <<title>> marker")
+
+
+@register("detectable_format:multiple_sections")
+def _check_multiple_sections(
+    *, text: str, section_spliter: str, num_sections: int, **_: Any
+) -> ConstraintResult:
+    """Count occurrences of `section_spliter N` (e.g., 'SECTION 1', 'SECTION 2', ...)."""
+    # Typical spliters: "SECTION", "Section", "Chapter".
+    # IFEval wants N numbered sections. Count unique section numbers in text.
+    pattern = rf"{re.escape(section_spliter)}\s+\d+"
+    matches = re.findall(pattern, text, re.IGNORECASE)
+    ok = len(matches) >= num_sections
+    return ConstraintResult(
+        passed=ok,
+        reason=f"{section_spliter}: got {len(matches)}, want {num_sections}",
+    )
+
+
+@register("detectable_format:json_format")
+def _check_json(*, text: str, **_: Any) -> ConstraintResult:
+    """Response must be valid JSON (optionally wrapped in a markdown code fence)."""
+    import json as _json
+    # Strip markdown fences if present.
+    stripped = text.strip()
+    if stripped.startswith("```"):
+        # Find inner content
+        m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", stripped)
+        if m:
+            stripped = m.group(1)
+    try:
+        _json.loads(stripped)
+        return ConstraintResult(passed=True)
+    except Exception as e:
+        return ConstraintResult(passed=False, reason=f"not valid JSON: {e}")
+
+
+@register("change_case:capital_word_frequency")
+def _check_capital_words(
+    *, text: str, capital_frequency: int, capital_relation: str = "at least", **_: Any
+) -> ConstraintResult:
+    """Count ALL-CAPS words (e.g., 'HELLO', 'WORLD')."""
+    all_caps = [w for w in re.findall(r"\b[A-Z]{2,}\b", text)]
+    count = len(all_caps)
+    ok = _relation_check(count, capital_relation, capital_frequency)
+    if ok is None:
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown relation: {capital_relation!r}"
+        )
+    return ConstraintResult(
+        passed=ok,
+        reason=f"ALL-CAPS words: got {count}, want {capital_relation} {capital_frequency}",
+    )
+
+
+@register("detectable_content:postscript")
+def _check_postscript(*, text: str, postscript_marker: str, **_: Any) -> ConstraintResult:
+    """Response must contain a postscript starting with `postscript_marker` (e.g., 'P.S.')."""
+    ok = postscript_marker in text
+    return ConstraintResult(
+        passed=ok,
+        reason=None if ok else f"missing postscript marker {postscript_marker!r}",
+    )
+
+
+@register("keywords:letter_frequency")
+def _check_letter_frequency(
+    *, text: str, letter: str, let_frequency: int, let_relation: str = "at least", **_: Any
+) -> ConstraintResult:
+    """Count occurrences of a single letter (case-insensitive)."""
+    count = len(re.findall(re.escape(letter), text, re.IGNORECASE))
+    ok = _relation_check(count, let_relation, let_frequency)
+    if ok is None:
+        return ConstraintResult(
+            passed=False, supported=False, reason=f"unknown relation: {let_relation!r}"
+        )
+    return ConstraintResult(
+        passed=ok,
+        reason=f"letter {letter!r}: got {count}, want {let_relation} {let_frequency}",
+    )
+
+
+@register("detectable_format:number_highlighted_sections")
+def _check_highlighted_sections(
+    *, text: str, num_highlights: int, **_: Any
+) -> ConstraintResult:
+    """Count markdown highlights (*italic*, **bold**, or *highlighted*)."""
+    highlights = re.findall(r"\*[^*\n]+\*", text)
+    ok = len(highlights) >= num_highlights
+    return ConstraintResult(
+        passed=ok,
+        reason=f"highlights: got {len(highlights)}, want at least {num_highlights}",
+    )
+
+
+@register("combination:repeat_prompt")
+def _check_repeat_prompt(*, text: str, prompt_to_repeat: str, **_: Any) -> ConstraintResult:
+    """Response must start with (an exact repeat of) the prompt."""
+    ok = text.lstrip().startswith(prompt_to_repeat.strip())
+    return ConstraintResult(
+        passed=ok,
+        reason=None if ok else "response does not begin with the prompt",
+    )
+
+
+@register("combination:two_responses")
+def _check_two_responses(*, text: str, **_: Any) -> ConstraintResult:
+    """Response must contain two distinct answers separated by '******'."""
+    ok = text.count("******") >= 1
+    return ConstraintResult(
+        passed=ok,
+        reason=None if ok else "missing '******' separator",
     )
