@@ -26,6 +26,16 @@ class LiteLLMAdapter(Adapter):
         if request.seed is not None:
             kwargs["seed"] = request.seed
         kwargs.update(extra)
+        # LiteLLM's per-provider validators reject parameters like `thinking`,
+        # `output_config`, and `seed` by default (even when the target endpoint
+        # supports them natively). Whitelist every non-core key we pass so they
+        # flow through unchanged.
+        whitelist = list(extra.keys())
+        for optional in ("seed", "stop", "tools"):
+            if optional in kwargs:
+                whitelist.append(optional)
+        if whitelist:
+            kwargs["allowed_openai_params"] = whitelist
         if self.profile.api_base:
             kwargs["api_base"] = self.profile.api_base
 
