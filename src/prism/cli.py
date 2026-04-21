@@ -239,5 +239,50 @@ def leaderboard_publish_cmd(
     console.print(f"Wrote leaderboard → {html_path}")
 
 
+@app.command(name="list-benchmarks")
+def list_benchmarks_cmd() -> None:
+    """List all registered benchmarks with metadata."""
+    from prism.agent import agent_registry
+    from prism.benchmarks import default_registry
+
+    table = Table(title="Prism Benchmarks")
+    table.add_column("Name", style="cyan")
+    table.add_column("Track")
+    table.add_column("Judge")
+    table.add_column("Source")
+
+    # Limit track
+    limit_reg = default_registry()
+    for name in limit_reg.names():
+        cls = limit_reg.get_class(name)
+        needs_judge = getattr(cls, "needs_llm_judge", False)
+        # Instantiate with no args to read default source (some benchmarks accept
+        # source kwargs; defaults reflect the "real" HF path)
+        try:
+            bm = cls()
+            source = getattr(bm, "source", None) or "builtin"
+        except Exception:
+            source = "(construction failed)"
+        table.add_row(
+            name,
+            "limit",
+            "LLM judge" if needs_judge else "rules",
+            str(source),
+        )
+
+    # Agent track
+    agent_reg = agent_registry()
+    for name in agent_reg.names():
+        cls = agent_reg.get_class(name)
+        try:
+            bm = cls()
+            track = getattr(bm, "track", "agent")
+        except Exception:
+            track = "agent"
+        table.add_row(name, track, "hard judge (subprocess)", "builtin")
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     app()
