@@ -15,7 +15,7 @@ class LiteLLMAdapter(Adapter):
         kwargs: dict[str, object] = {
             "model": model_id,
             "messages": request.messages,
-            "max_tokens": request.max_output_tokens,
+            "max_tokens": self.profile.max_output_tokens or request.max_output_tokens,
             "temperature": request.temperature,
             "top_p": request.top_p,
         }

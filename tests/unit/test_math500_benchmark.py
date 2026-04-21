@@ -1,7 +1,10 @@
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
 
 from prism.benchmarks.math500.benchmark import MATH500Benchmark
-from prism.judges.rules import NumericJudge
+from prism.judges.llm import LLMJudge
 
 
 def test_load_prompts():
@@ -14,9 +17,21 @@ def test_load_prompts():
     assert prompts[0].prompt_id == "math500-math-1"
 
 
-def test_judge_is_numeric():
+def test_needs_llm_judge():
+    assert MATH500Benchmark.needs_llm_judge is True
+
+
+def test_make_judge_requires_adapter():
     fixture = Path(__file__).parent.parent / "fixtures" / "math500_sample.jsonl"
     bm = MATH500Benchmark(source=str(fixture), source_format="jsonl")
     prompt = next(iter(bm.load_prompts(subset="full")))
-    judge = bm.make_judge(prompt)
-    assert isinstance(judge, NumericJudge)
+    with pytest.raises(ValueError, match="llm_judge_adapter"):
+        bm.make_judge(prompt, llm_judge_adapter=None)
+
+
+def test_make_judge_returns_llm_judge():
+    fixture = Path(__file__).parent.parent / "fixtures" / "math500_sample.jsonl"
+    bm = MATH500Benchmark(source=str(fixture), source_format="jsonl")
+    prompt = next(iter(bm.load_prompts(subset="full")))
+    judge = bm.make_judge(prompt, llm_judge_adapter=MagicMock())
+    assert isinstance(judge, LLMJudge)

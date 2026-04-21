@@ -36,5 +36,9 @@ class ModelProfile(BaseModel):
     api_base: str | None = None
     thinking: Thinking | None = None
     reasoning_effort: Effort | None = None
+    # Override the per-request max_output_tokens. Needed for thinking-heavy
+    # benchmarks (AIME, MATH-500) where thinking tokens count toward max_tokens
+    # and 4096 often truncates the final answer.
+    max_output_tokens: int | None = Field(default=None, gt=0)
     rate_limit: RateLimit = Field(default_factory=RateLimit)
     cost: Cost = Field(default_factory=Cost)
