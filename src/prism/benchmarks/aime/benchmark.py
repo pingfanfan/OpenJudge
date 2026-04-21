@@ -61,13 +61,19 @@ class AIMEBenchmark(Benchmark):
 
     @staticmethod
     def _row_to_prompt(row: dict[str, Any]) -> PromptSpec:
-        rid = str(row.get("id") or f"{row.get('year', 'x')}-{row.get('problem_number', 'x')}")
-        content = _PROMPT_TEMPLATE.format(problem=row["problem"])
+        # Accept both snake_case fixture keys and TitleCase HF keys.
+        rid = str(
+            row.get("id") or row.get("ID")
+            or f"{row.get('year', 'x')}-{row.get('problem_number', 'x')}"
+        )
+        problem = row.get("problem") or row.get("Problem") or ""
+        answer = row.get("answer") or row.get("Answer")
+        content = _PROMPT_TEMPLATE.format(problem=problem)
         return PromptSpec(
             prompt_id=f"aime-{rid}",
             task_id="aime",
             version="v1",
             messages=[{"role": "user", "content": content}],
-            expected=str(row["answer"]),
+            expected=str(answer) if answer is not None else None,
             metadata={"year": row.get("year"), "problem_number": row.get("problem_number")},
         )
