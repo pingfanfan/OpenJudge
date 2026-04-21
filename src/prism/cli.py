@@ -61,10 +61,38 @@ def doctor() -> None:
         table.add_row("litellm", "-", "FAIL")
         ok_py = False
 
-    # API keys (just reports presence, not validates)
-    for env in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"):
-        present = bool(os.environ.get(env))
-        table.add_row(env, "set" if present else "(unset)", "OK" if present else "WARN")
+    # API keys for all supported providers
+    _PROVIDER_ENV_KEYS = [
+        ("anthropic", "ANTHROPIC_API_KEY"),
+        ("openai", "OPENAI_API_KEY"),
+        ("google", "GOOGLE_API_KEY"),
+        ("deepseek", "DEEPSEEK_API_KEY"),
+        ("xai", "XAI_API_KEY"),
+        ("kimi", "KIMI_API_KEY"),
+        ("qwen", "DASHSCOPE_API_KEY"),  # Qwen's DashScope API
+    ]
+    for provider_name, env in _PROVIDER_ENV_KEYS:
+        value = os.environ.get(env)
+        if value:
+            table.add_row(f"{provider_name} ({env})", "set", "OK")
+        else:
+            table.add_row(
+                f"{provider_name} ({env})",
+                f"(unset — run: export {env}=...)",
+                "WARN",
+            )
+
+    # HuggingFace login — required for gated datasets like GPQA / C-Eval
+    hf_token_path = Path.home() / ".cache" / "huggingface" / "token"
+    hf_env_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+    if hf_token_path.exists() or hf_env_token:
+        table.add_row("huggingface", "logged in", "OK")
+    else:
+        table.add_row(
+            "huggingface",
+            "(not logged in — run: huggingface-cli login)",
+            "WARN",
+        )
 
     # Working dir / artifacts dir
     artifacts = Path.cwd() / "artifacts"
