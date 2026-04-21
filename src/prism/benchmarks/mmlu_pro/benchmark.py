@@ -12,7 +12,7 @@ from prism.judges.base import Judge
 from prism.judges.rules import RegexJudge
 
 _PROMPT_TEMPLATE = """Answer the following multiple-choice question.
-Respond with ONLY the letter (A/B/C/D) on the last line, prefixed by "Answer:".
+Respond with ONLY the letter on the last line, prefixed by "Answer:".
 
 Question: {question}
 
@@ -21,7 +21,8 @@ Choices:
 
 Think step by step, then give your final answer as "Answer: X"."""
 
-_JUDGE_PATTERN = r"Answer:\s*([A-D])\b"
+# MMLU-Pro has up to 10 options (A-J).
+_JUDGE_PATTERN = r"Answer:\s*([A-J])\b"
 
 
 class MMLUProBenchmark(Benchmark):
