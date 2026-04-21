@@ -67,8 +67,10 @@ class SimpleQABenchmark(Benchmark):
 
     @staticmethod
     def _row_to_prompt(row: dict[str, Any]) -> PromptSpec:
-        qid = str(row.get("id") or row["question"][:32])
-        content = _PROMPT_TEMPLATE.format(question=row["question"])
+        # basicv8vc/SimpleQA uses `problem` (HF) or our fixture's `question` — accept both.
+        question = row.get("question") or row.get("problem") or ""
+        qid = str(row.get("id") or question[:32])
+        content = _PROMPT_TEMPLATE.format(question=question)
         return PromptSpec(
             prompt_id=f"simpleqa-{qid}",
             task_id="simpleqa",
