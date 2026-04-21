@@ -1,0 +1,20 @@
+# Template for a self-hosted / proxy endpoint that speaks the Anthropic API.
+# Edit `api_base` and (optionally) `model` to match your deployment.
+#
+# Works with any endpoint that LiteLLM recognizes as Anthropic-format — for
+# example: claude-code-router, LiteLLM Proxy with anthropic_passthrough, or
+# a hand-rolled FastAPI server that implements the /v1/messages endpoint.
+id: custom-anthropic-proxy
+display_name: "Custom Anthropic-format endpoint"
+provider: anthropic
+model: claude-opus-4-7
+api_base: https://your-proxy.example.com/v1
+thinking:
+  enabled: true
+  effort: high
+rate_limit:
+  rpm: 50
+  tpm: 400000
+cost:
+  input_per_mtok: 15.0
+  output_per_mtok: 75.0

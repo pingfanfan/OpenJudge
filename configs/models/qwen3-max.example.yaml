@@ -1,0 +1,10 @@
+id: qwen3-max
+display_name: "Qwen3 Max (via DashScope)"
+provider: qwen
+model: qwen3-max
+rate_limit:
+  rpm: 60
+  tpm: 400000
+cost:
+  input_per_mtok: 1.6
+  output_per_mtok: 6.4

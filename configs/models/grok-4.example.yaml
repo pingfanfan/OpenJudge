@@ -1,0 +1,11 @@
+id: grok-4@high
+display_name: "xAI Grok 4 (reasoning_effort=high)"
+provider: xai
+model: grok-4
+reasoning_effort: high
+rate_limit:
+  rpm: 60
+  tpm: 400000
+cost:
+  input_per_mtok: 5.0
+  output_per_mtok: 15.0

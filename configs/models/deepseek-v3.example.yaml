@@ -1,0 +1,10 @@
+id: deepseek-v3
+display_name: "DeepSeek V3"
+provider: deepseek
+model: deepseek-v3
+rate_limit:
+  rpm: 100
+  tpm: 500000
+cost:
+  input_per_mtok: 0.27
+  output_per_mtok: 1.10
