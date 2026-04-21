@@ -64,12 +64,36 @@ class GPQABenchmark(Benchmark):
 
     @staticmethod
     def _row_to_prompt(row: dict[str, Any]) -> PromptSpec:
-        qid = str(row.get("id") or row["question"][:32])
-        choices = row["choices"]
-        correct_index = int(row["correct_index"])
+        # Fixture form (our sample jsonl): {id, question, choices: [...], correct_index}
+        # HF form (Idavidrein/gpqa):         {Record ID, Question, Correct Answer,
+        #                                      Incorrect Answer 1, Incorrect Answer 2,
+        #                                      Incorrect Answer 3, ...}
+        if "choices" in row and "correct_index" in row:
+            # Fixture form — use as-is.
+            qid = str(row.get("id") or row["question"][:32])
+            question = row["question"]
+            choices = list(row["choices"])
+            correct_index = int(row["correct_index"])
+        else:
+            # HF form — build choices by shuffling the correct answer among 3 incorrect.
+            import random
+            qid = str(row.get("Record ID") or row.get("id") or row["Question"][:32])
+            question = row["Question"]
+            correct = row["Correct Answer"]
+            incorrect = [
+                row["Incorrect Answer 1"],
+                row["Incorrect Answer 2"],
+                row["Incorrect Answer 3"],
+            ]
+            choices = [correct, *incorrect]
+            # Deterministic shuffle seeded by Record ID so results are reproducible.
+            rng = random.Random(qid)
+            rng.shuffle(choices)
+            correct_index = choices.index(correct)
+
         choices_block = "\n".join(f"{chr(ord('A') + i)}. {opt}" for i, opt in enumerate(choices))
         expected = chr(ord("A") + correct_index)
-        content = _PROMPT_TEMPLATE.format(question=row["question"], choices_block=choices_block)
+        content = _PROMPT_TEMPLATE.format(question=question, choices_block=choices_block)
         return PromptSpec(
             prompt_id=f"gpqa-{qid}",
             task_id="gpqa",
