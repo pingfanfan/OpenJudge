@@ -284,5 +284,100 @@ def list_benchmarks_cmd() -> None:
     console.print(table)
 
 
+# Sensible default rate_limit and cost presets per provider.
+# Users can hand-edit the generated YAML afterwards.
+_PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
+    "anthropic": {
+        "rate_limit": {"rpm": 50, "tpm": 400000},
+        "cost": {"input_per_mtok": 15.0, "output_per_mtok": 75.0},
+        "thinking": {"enabled": True, "effort": "high"},
+    },
+    "openai": {
+        "rate_limit": {"rpm": 100, "tpm": 500000},
+        "cost": {"input_per_mtok": 10.0, "output_per_mtok": 40.0},
+        "reasoning_effort": "high",
+    },
+    "google": {
+        "rate_limit": {"rpm": 60, "tpm": 400000},
+        "cost": {"input_per_mtok": 7.0, "output_per_mtok": 21.0},
+    },
+    "deepseek": {
+        "rate_limit": {"rpm": 100, "tpm": 500000},
+        "cost": {"input_per_mtok": 0.5, "output_per_mtok": 2.0},
+    },
+    "xai": {
+        "rate_limit": {"rpm": 60, "tpm": 400000},
+        "cost": {"input_per_mtok": 5.0, "output_per_mtok": 15.0},
+    },
+    "kimi": {
+        "rate_limit": {"rpm": 60, "tpm": 400000},
+        "cost": {"input_per_mtok": 1.0, "output_per_mtok": 3.0},
+    },
+    "qwen": {
+        "rate_limit": {"rpm": 60, "tpm": 400000},
+        "cost": {"input_per_mtok": 1.0, "output_per_mtok": 3.0},
+    },
+    "custom": {
+        "rate_limit": {"rpm": 60, "tpm": 200000},
+        "cost": {"input_per_mtok": 0.0, "output_per_mtok": 0.0},
+    },
+}
+
+
+@app.command(name="init-config")
+def init_config_cmd(
+    provider: str = typer.Option(..., "--provider", help="anthropic|openai|google|deepseek|xai|kimi|qwen|custom"),
+    model: str = typer.Option(..., "--model", help="Provider-native model name (e.g., gpt-5, claude-opus-4-7)"),
+    output: Path = typer.Option(..., "--output", help="Destination YAML path"),
+    id_: str | None = typer.Option(None, "--id", help="Profile id (default: <model>@<effort>)"),
+    display_name: str | None = typer.Option(None, "--display-name"),
+    api_base: str | None = typer.Option(None, "--api-base", help="Custom endpoint URL (e.g., a self-hosted Anthropic-compatible proxy)"),
+    effort: str | None = typer.Option(None, "--effort", help="off|low|medium|high|max (overrides provider default)"),
+    force: bool = typer.Option(False, "--force", help="Overwrite existing file"),
+) -> None:
+    """Generate a model profile YAML with sensible defaults for a provider."""
+    import yaml
+
+    if provider not in _PROVIDER_DEFAULTS:
+        console.print(f"[red]Unknown provider: {provider!r}. Known: {list(_PROVIDER_DEFAULTS)}[/red]")
+        raise typer.Exit(code=2)
+
+    if output.exists() and not force:
+        console.print(f"[red]{output} already exists. Use --force to overwrite.[/red]")
+        raise typer.Exit(code=2)
+
+    defaults = _PROVIDER_DEFAULTS[provider]
+
+    effective_effort = effort
+    profile_id = id_ or (f"{model}@{effective_effort}" if effective_effort else f"{model}-default")
+
+    config: dict[str, Any] = {
+        "id": profile_id,
+        "display_name": display_name or f"{model} via {provider}",
+        "provider": provider,
+        "model": model,
+    }
+    if api_base:
+        config["api_base"] = api_base
+
+    # Apply provider-specific thinking / reasoning_effort defaults.
+    if effective_effort:
+        if provider == "anthropic":
+            config["thinking"] = {"enabled": effective_effort != "off", "effort": effective_effort}
+        else:
+            config["reasoning_effort"] = effective_effort
+    else:
+        for key in ("thinking", "reasoning_effort"):
+            if key in defaults:
+                config[key] = defaults[key]
+
+    config["rate_limit"] = defaults["rate_limit"]
+    config["cost"] = defaults["cost"]
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(yaml.safe_dump(config, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    console.print(f"Wrote {output}")
+
+
 if __name__ == "__main__":
     app()
