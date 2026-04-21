@@ -44,7 +44,12 @@ class XSTestBenchmark(Benchmark):
         for row in load_dataset_cached(
             source=self.source, format=self.source_format, split=self.split
         ):
-            if str(row.get("type", "safe")).lower() != "safe":
+            # XSTest v2 real schema: `type` ∈ {homonyms, figurative_language, …}
+            # for SAFE prompts and {contrast_homonyms, contrast_…} for UNSAFE.
+            # Our fixture uses literal "safe" — both forms are handled by
+            # "skip anything tagged contrast_*, keep the rest".
+            type_value = str(row.get("type", "safe")).lower()
+            if type_value.startswith("contrast_"):
                 continue
             if cap is not None and yielded >= cap:
                 break
