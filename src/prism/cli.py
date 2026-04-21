@@ -62,7 +62,7 @@ def doctor() -> None:
         ok_py = False
 
     # API keys for all supported providers
-    _PROVIDER_ENV_KEYS = [
+    provider_env_keys = [
         ("anthropic", "ANTHROPIC_API_KEY"),
         ("openai", "OPENAI_API_KEY"),
         ("google", "GOOGLE_API_KEY"),
@@ -71,7 +71,7 @@ def doctor() -> None:
         ("kimi", "KIMI_API_KEY"),
         ("qwen", "DASHSCOPE_API_KEY"),  # Qwen's DashScope API
     ]
-    for provider_name, env in _PROVIDER_ENV_KEYS:
+    for provider_name, env in provider_env_keys:
         value = os.environ.get(env)
         if value:
             table.add_row(f"{provider_name} ({env})", "set", "OK")
@@ -301,10 +301,10 @@ def list_benchmarks_cmd() -> None:
     # Agent track
     agent_reg = agent_registry()
     for name in agent_reg.names():
-        cls = agent_reg.get_class(name)
+        agent_cls = agent_reg.get_class(name)
         try:
-            bm = cls()
-            track = getattr(bm, "track", "agent")
+            agent_bm = agent_cls()
+            track = getattr(agent_bm, "track", "agent")
         except Exception:
             track = "agent"
         table.add_row(name, track, "hard judge (subprocess)", "builtin")
@@ -354,20 +354,31 @@ _PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
 
 @app.command(name="init-config")
 def init_config_cmd(
-    provider: str = typer.Option(..., "--provider", help="anthropic|openai|google|deepseek|xai|kimi|qwen|custom"),
-    model: str = typer.Option(..., "--model", help="Provider-native model name (e.g., gpt-5, claude-opus-4-7)"),
-    output: Path = typer.Option(..., "--output", help="Destination YAML path"),
+    provider: str = typer.Option(
+        ..., "--provider", help="anthropic|openai|google|deepseek|xai|kimi|qwen|custom"
+    ),
+    model: str = typer.Option(
+        ..., "--model", help="Provider-native model name (e.g., gpt-5, claude-opus-4-7)"
+    ),
+    output: Path = typer.Option(..., "--output", help="Destination YAML path"),  # noqa: B008
     id_: str | None = typer.Option(None, "--id", help="Profile id (default: <model>@<effort>)"),
     display_name: str | None = typer.Option(None, "--display-name"),
-    api_base: str | None = typer.Option(None, "--api-base", help="Custom endpoint URL (e.g., a self-hosted Anthropic-compatible proxy)"),
-    effort: str | None = typer.Option(None, "--effort", help="off|low|medium|high|max (overrides provider default)"),
+    api_base: str | None = typer.Option(
+        None,
+        "--api-base",
+        help="Custom endpoint URL (e.g., a self-hosted Anthropic-compatible proxy)",
+    ),
+    effort: str | None = typer.Option(
+        None, "--effort", help="off|low|medium|high|max (overrides provider default)"
+    ),
     force: bool = typer.Option(False, "--force", help="Overwrite existing file"),
 ) -> None:
     """Generate a model profile YAML with sensible defaults for a provider."""
     import yaml
 
     if provider not in _PROVIDER_DEFAULTS:
-        console.print(f"[red]Unknown provider: {provider!r}. Known: {list(_PROVIDER_DEFAULTS)}[/red]")
+        known = list(_PROVIDER_DEFAULTS)
+        console.print(f"[red]Unknown provider: {provider!r}. Known: {known}[/red]")
         raise typer.Exit(code=2)
 
     if output.exists() and not force:

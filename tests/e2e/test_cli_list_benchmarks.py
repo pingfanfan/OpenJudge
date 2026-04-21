@@ -30,5 +30,7 @@ def test_list_benchmarks_marks_judge_needed():
     result = runner.invoke(app, ["list-benchmarks"])
     # simpleqa / harmbench / xstest need judge
     lines = result.stdout.split("\n")
-    judge_marked_lines = [line for line in lines if "judge" in line.lower() and "simpleqa" in line.lower()]
+    judge_marked_lines = [
+        line for line in lines if "judge" in line.lower() and "simpleqa" in line.lower()
+    ]
     assert judge_marked_lines, "simpleqa should be marked as needing a judge"
