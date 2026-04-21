@@ -66,3 +66,31 @@ def test_load_from_yaml(tmp_path: Path):
     assert profile.id == "claude-opus-4-7@max"
     assert profile.rate_limit.rpm == 50
     assert profile.cost.output_per_mtok == 75.0
+
+
+def test_api_base_optional():
+    """api_base is optional and defaults to None."""
+    profile = ModelProfile(
+        id="x", provider="anthropic", model="claude-opus-4-7",
+    )
+    assert profile.api_base is None
+
+
+def test_api_base_accepted():
+    profile = ModelProfile(
+        id="x", provider="anthropic", model="claude-opus-4-7",
+        api_base="https://my-proxy.example.com/v1",
+    )
+    assert profile.api_base == "https://my-proxy.example.com/v1"
+
+
+def test_load_yaml_with_api_base(tmp_path):
+    yaml_path = tmp_path / "custom.yaml"
+    yaml_path.write_text(
+        "id: custom-anthropic\n"
+        "provider: anthropic\n"
+        "model: claude-opus-4-7\n"
+        "api_base: https://my-proxy.example.com/v1\n"
+    )
+    profile = load_model_profile(yaml_path)
+    assert profile.api_base == "https://my-proxy.example.com/v1"

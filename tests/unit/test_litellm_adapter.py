@@ -181,6 +181,41 @@ async def test_reasoning_text_none_when_attr_missing(openai_profile):
 
 
 @pytest.mark.asyncio
+async def test_api_base_is_passed_to_litellm():
+    from unittest.mock import AsyncMock, patch
+    profile = ModelProfile(
+        id="custom", provider="anthropic", model="claude-opus-4-7",
+        api_base="https://my-proxy.example.com/v1",
+    )
+    adapter = LiteLLMAdapter(profile)
+    req = AdapterRequest(messages=[{"role": "user", "content": "hi"}], max_output_tokens=16)
+    fake = _FakeResponse("ok", pt=1, ct=1)
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=fake),
+    ) as m:
+        await adapter.complete(req)
+
+    kwargs = m.call_args.kwargs
+    assert kwargs.get("api_base") == "https://my-proxy.example.com/v1"
+
+
+@pytest.mark.asyncio
+async def test_api_base_absent_by_default(openai_profile):
+    """When api_base is None, the kwarg should NOT appear in the LiteLLM call."""
+    from unittest.mock import AsyncMock, patch
+    adapter = LiteLLMAdapter(openai_profile)
+    req = AdapterRequest(messages=[{"role": "user", "content": "x"}], max_output_tokens=16)
+    fake = _FakeResponse("ok", pt=1, ct=1)
+    with patch(
+        "prism.adapters.litellm_adapter.litellm.acompletion",
+        new=AsyncMock(return_value=fake),
+    ) as m:
+        await adapter.complete(req)
+    assert "api_base" not in m.call_args.kwargs
+
+
+@pytest.mark.asyncio
 async def test_raw_defaults_empty_when_no_model_dump(openai_profile):
     """When the response object has no model_dump(), raw is an empty dict."""
     adapter = LiteLLMAdapter(openai_profile)

@@ -33,6 +33,7 @@ class ModelProfile(BaseModel):
     display_name: str | None = None
     provider: Literal["anthropic", "openai", "google", "deepseek", "xai", "kimi", "qwen", "custom"]
     model: str
+    api_base: str | None = None
     thinking: Thinking | None = None
     reasoning_effort: Effort | None = None
     rate_limit: RateLimit = Field(default_factory=RateLimit)

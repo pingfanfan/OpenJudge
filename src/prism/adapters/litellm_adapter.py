@@ -26,6 +26,8 @@ class LiteLLMAdapter(Adapter):
         if request.seed is not None:
             kwargs["seed"] = request.seed
         kwargs.update(extra)
+        if self.profile.api_base:
+            kwargs["api_base"] = self.profile.api_base
 
         t0 = perf_counter()
         resp = await litellm.acompletion(**kwargs)
