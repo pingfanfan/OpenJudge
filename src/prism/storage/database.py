@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from prism.storage.schema import Base
@@ -15,6 +16,13 @@ class Database:
 
     async def init(self) -> None:
         async with self._engine.begin() as conn:
+            # WAL journal mode allows concurrent readers + one writer, much
+            # friendlier to our multi-task orchestrator than the default DELETE
+            # mode. Also bump busy_timeout so short lock contention retries
+            # instead of erroring out (e3q8).
+            await conn.execute(text("PRAGMA journal_mode=WAL"))
+            await conn.execute(text("PRAGMA busy_timeout=5000"))
+            await conn.execute(text("PRAGMA synchronous=NORMAL"))
             await conn.run_sync(Base.metadata.create_all)
 
     @asynccontextmanager

@@ -96,6 +96,7 @@ class RunService:
         ))
 
         async def _persist(cell: Cell, resp: AdapterResponse) -> None:
+            # Phase 1: insert Response, commit, close session — keep it short.
             async with self.db.session() as s:
                 row = Response(
                     run_id=run_id,
@@ -111,25 +112,38 @@ class RunService:
                     finish_reason=resp.finish_reason,
                 )
                 s.add(row)
-                await s.flush()  # obtain row.id
-                if judges is not None and cell.prompt_id in judges:
-                    judge = judges[cell.prompt_id]
-                    exp = (expected or {}).get(cell.prompt_id) or ""
-                    try:
-                        jr = await judge.judge(output=resp.text, expected=exp)
-                    except Exception as e:  # judge failure is recorded, not fatal
-                        s.add(Score(
-                            response_id=row.id, judge=judge.name,
-                            score=0.0, confidence=0.0,
-                            reasoning=f"judge raised {type(e).__name__}: {e}",
-                        ))
-                    else:
-                        s.add(Score(
-                            response_id=row.id, judge=judge.name,
-                            score=jr.score, confidence=jr.confidence,
-                            reasoning=jr.reasoning,
-                        ))
+                await s.flush()
+                response_id = row.id
                 await s.commit()
+
+            # Phase 2: run the judge OUTSIDE any DB session. LLM judges take
+            # seconds; holding a SQLite transaction that long across N=4
+            # concurrent tasks caused the e3q8 lock-contention errors.
+            score_row: Score | None = None
+            if judges is not None and cell.prompt_id in judges:
+                judge = judges[cell.prompt_id]
+                exp = (expected or {}).get(cell.prompt_id) or ""
+                try:
+                    jr = await judge.judge(output=resp.text, expected=exp)
+                except Exception as e:
+                    score_row = Score(
+                        response_id=response_id, judge=judge.name,
+                        score=0.0, confidence=0.0,
+                        reasoning=f"judge raised {type(e).__name__}: {e}",
+                    )
+                else:
+                    score_row = Score(
+                        response_id=response_id, judge=judge.name,
+                        score=jr.score, confidence=jr.confidence,
+                        reasoning=jr.reasoning,
+                    )
+
+            # Phase 3: persist the Score in a fresh short session.
+            if score_row is not None:
+                async with self.db.session() as s:
+                    s.add(score_row)
+                    await s.commit()
+
             self.artifacts.put(
                 run_id,
                 f"responses/{cell.model_id}/{cell.prompt_id}-seed{cell.seed}.json",
