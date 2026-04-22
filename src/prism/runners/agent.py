@@ -77,6 +77,7 @@ class AgentRunner:
                 workspace=workspace,
                 user_instruction=task.user_instruction,
                 max_turns=task.max_turns,
+                prompted_tool_use=profile.prompted_tool_use,
             )
             judge_outcome = run_hard_judge(
                 command=task.judge_command,

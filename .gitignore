@@ -13,6 +13,7 @@ htmlcov/
 *.db
 *.db-journal
 artifacts/
+docs/reports/
 .DS_Store
 .vscode/
 .idea/

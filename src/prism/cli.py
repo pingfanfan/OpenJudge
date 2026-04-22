@@ -145,6 +145,16 @@ def run_cmd(
     benchmark_format: str | None = typer.Option(
         None, "--benchmark-format", help="jsonl|hf"
     ),
+    context_lengths: str | None = typer.Option(
+        None,
+        "--context-lengths",
+        help="Comma-separated token counts for NIAH/RULER staircase (e.g., 4096,16384,65536)",
+    ),
+    depths: str | None = typer.Option(
+        None,
+        "--depths",
+        help="Comma-separated needle depths 0.0-1.0 for NIAH/RULER (e.g., 0.25,0.5,0.75)",
+    ),
 ) -> None:
     """Run a benchmark against a model, producing scored results."""
     if track not in ("limit", "agent"):
@@ -195,11 +205,15 @@ def run_cmd(
         raise typer.Exit(code=2) from None
 
     # Instantiate benchmark (allow override for source/format in tests)
-    kwargs: dict[str, str] = {}
+    kwargs: dict[str, Any] = {}
     if benchmark_source is not None:
         kwargs["source"] = benchmark_source
     if benchmark_format is not None:
         kwargs["source_format"] = benchmark_format
+    if context_lengths is not None:
+        kwargs["lengths"] = [int(x.strip()) for x in context_lengths.split(",") if x.strip()]
+    if depths is not None:
+        kwargs["depths"] = [float(x.strip()) for x in depths.split(",") if x.strip()]
     limit_bm = limit_bm_cls(**kwargs)
 
     profile = load_model_profile(model)

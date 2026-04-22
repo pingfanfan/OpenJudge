@@ -40,5 +40,10 @@ class ModelProfile(BaseModel):
     # benchmarks (AIME, MATH-500) where thinking tokens count toward max_tokens
     # and 4096 often truncates the final answer.
     max_output_tokens: int | None = Field(default=None, gt=0)
+    # Skip native tools=[...] and use <tool_use>{"name":..., "arguments":...}</tool_use>
+    # text encoding instead. For endpoints that reject OpenAI-format custom tool
+    # schemas (e.g., some Anthropic-format proxies that only accept built-in
+    # server tools like web_search_20250305).
+    prompted_tool_use: bool = False
     rate_limit: RateLimit = Field(default_factory=RateLimit)
     cost: Cost = Field(default_factory=Cost)
