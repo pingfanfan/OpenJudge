@@ -57,6 +57,10 @@ class Prompt(Base):
     version: Mapped[str] = mapped_column(String)
     text: Mapped[str] = mapped_column(Text)
     system: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Ground-truth answer (letter for MCQ, number/LaTeX for math, free text for
+    # QA). Persisted so post-hoc dashboards can show "model answer vs expected"
+    # without re-loading the HuggingFace dataset.
+    expected: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     task = relationship("Task")
 

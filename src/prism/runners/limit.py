@@ -81,6 +81,7 @@ class LimitRunner:
                 version=spec.version,
                 text=_extract_prompt_text(spec.messages),
                 system=None,
+                expected=spec.expected,
             )
             prompts_to_send[spec.prompt_id] = spec.messages
             expected_map[spec.prompt_id] = spec.expected

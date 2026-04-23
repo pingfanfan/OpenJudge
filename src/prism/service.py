@@ -61,12 +61,22 @@ class RunService:
                 await s.commit()
 
     async def register_prompt(
-        self, *, prompt_id: str, task_id: str, version: str, text: str, system: str | None = None
+        self,
+        *,
+        prompt_id: str,
+        task_id: str,
+        version: str,
+        text: str,
+        system: str | None = None,
+        expected: str | None = None,
     ) -> None:
         async with self.db.session() as s:
             if await s.get(Prompt, prompt_id) is None:
                 s.add(
-                    Prompt(id=prompt_id, task_id=task_id, version=version, text=text, system=system)
+                    Prompt(
+                        id=prompt_id, task_id=task_id, version=version,
+                        text=text, system=system, expected=expected,
+                    )
                 )
                 await s.commit()
 
